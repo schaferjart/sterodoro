@@ -1,0 +1,12 @@
+-- Example: Enable Row Level Security (RLS) on your table
+ALTER TABLE your_table ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow users to access only their own rows
+CREATE POLICY "Users can access their own data" ON your_table
+  FOR ALL
+  USING (auth.uid() = user_id);
+
+-- Policy: Allow insert only if user_id matches auth.uid()
+CREATE POLICY "Users can insert their own data" ON your_table
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id); 

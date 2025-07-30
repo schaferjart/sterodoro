@@ -174,6 +174,15 @@ async function handleTimerEnd(data) {
       console.log('Could not play sound in background:', error);
     }
     
+    // Try vibration (works better on iOS)
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+      }
+    } catch (error) {
+      console.log('Vibration not available in service worker:', error);
+    }
+    
   } catch (error) {
     console.error('Failed to handle timer end:', error);
   }

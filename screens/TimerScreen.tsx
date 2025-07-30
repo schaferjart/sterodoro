@@ -151,6 +151,16 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
           });
         }
       }
+      
+      // Add vibration for iOS (works even in background)
+      if ('vibrate' in navigator) {
+        try {
+          // Vibrate pattern: 3 short vibrations
+          navigator.vibrate([200, 100, 200, 100, 200]);
+        } catch (error) {
+          console.log('Vibration not supported or failed:', error);
+        }
+      }
 
       // If user is writing a note, handle it gracefully
       if (isNoteTaking && noteText.trim()) {

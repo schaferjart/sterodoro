@@ -18,6 +18,7 @@ import SyncQueueViewer from './components/SyncQueueViewer';
 import AuthStatusChecker from './components/AuthStatusChecker';
 import NotificationPermission from './components/NotificationPermission';
 import SoundTest from './components/SoundTest';
+import IOSNotificationHelper from './components/IOSNotificationHelper';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializeErrorReporting } from './lib/error-reporting';
 import { validateEnvironment } from './lib/env-validation';
@@ -967,6 +968,7 @@ const App: React.FC = () => {
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-4 space-y-2 max-w-md">
             <AuthStatusChecker />
+            <IOSNotificationHelper />
             <NotificationPermission />
             <SoundTest />
             <BackgroundSyncTest />

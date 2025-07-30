@@ -18,6 +18,7 @@ interface TimerScreenProps {
   onGoHome: () => void;
   onAddNote: (note: string) => void;
   notesCount: number;
+  soundEnabled: boolean;
 }
 
 const formatTime = (seconds: number): string => {
@@ -27,7 +28,7 @@ const formatTime = (seconds: number): string => {
 };
 
 const TimerScreen: React.FC<TimerScreenProps> = ({
-  config, timerState, setTimerState, onBreakStart, onSessionStart, onTimerEnd, onGoHome, onAddNote, notesCount
+  config, timerState, setTimerState, onBreakStart, onSessionStart, onTimerEnd, onGoHome, onAddNote, notesCount, soundEnabled
 }) => {
   const { isBreak, currentSession, timeRemaining, madeTime } = timerState;
   const { sessionDuration, breakDuration, sessionCount } = config.timerSettings;
@@ -35,23 +36,25 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
   
   const [isNoteTaking, setIsNoteTaking] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [showTimerEndDialog, setShowTimerEndDialog] = useState(false);
+  const [pendingTimerAction, setPendingTimerAction] = useState<(() => void) | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const playNotificationSound = useCallback(() => {
-    if (audioRef.current) {
+    if (audioRef.current && soundEnabled) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(error => {
             console.warn("Notification sound playback failed.", error);
         });
     }
-  }, []);
+  }, [soundEnabled]);
 
 
   useEffect(() => {
     if (!timerState.isActive) return;
     const timer = setInterval(() => {
-      setTimerState(prev => {
+      setTimerState((prev: any) => {
         if (prev.timeRemaining > 0) {
           return { ...prev, timeRemaining: prev.timeRemaining - 1, madeTime: prev.madeTime + 1 };
         }
@@ -64,15 +67,42 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
 
   useEffect(() => {
     if (timeRemaining <= 0 && timerState.isActive) {
-      playNotificationSound();
+      // If user is writing a note, handle it gracefully
+      if (isNoteTaking && noteText.trim()) {
+        setShowTimerEndDialog(true);
+        if (isBreak) {
+          setPendingTimerAction(() => () => {
+            if (currentSession < sessionCount) {
+              onSessionStart();
+            } else {
+              onTimerEnd();
+            }
+          });
+        } else {
+          setPendingTimerAction(() => () => {
+            if (currentSession < sessionCount && breakDuration > 0) {
+              onBreakStart();
+            } else if (currentSession >= sessionCount) {
+              onTimerEnd();
+            } else {
+              onSessionStart();
+            }
+          });
+        }
+        return;
+      }
+
+      // Normal flow when not writing a note
       if (isBreak) {
+        // Break ended
         if (currentSession < sessionCount) {
           onSessionStart();
         } else {
           onTimerEnd();
         }
       } else {
-         // Don't go to break if it's the last session
+        // Session ended
+        // Don't go to break if it's the last session
         if (currentSession < sessionCount && breakDuration > 0) {
            onBreakStart();
         } else if (currentSession >= sessionCount) {
@@ -82,7 +112,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         }
       }
     }
-  }, [timeRemaining, timerState.isActive, isBreak, currentSession, sessionCount, breakDuration, onSessionStart, onTimerEnd, onBreakStart, playNotificationSound]);
+  }, [timeRemaining, timerState.isActive, isBreak, currentSession, sessionCount, breakDuration, onSessionStart, onTimerEnd, onBreakStart, isNoteTaking, noteText]);
 
   const progress = useMemo(() => {
       if (totalDuration === 0) return 0;
@@ -97,6 +127,34 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
     setIsNoteTaking(false);
   };
 
+  const handleSaveAndContinue = () => {
+    if (noteText.trim()) {
+      onAddNote(noteText.trim());
+      setNoteText('');
+    }
+    setIsNoteTaking(false);
+    setShowTimerEndDialog(false);
+    if (pendingTimerAction) {
+      pendingTimerAction();
+      setPendingTimerAction(null);
+    }
+  };
+
+  const handleDiscardAndContinue = () => {
+    setNoteText('');
+    setIsNoteTaking(false);
+    setShowTimerEndDialog(false);
+    if (pendingTimerAction) {
+      pendingTimerAction();
+      setPendingTimerAction(null);
+    }
+  };
+
+  const handleCancelTimerEnd = () => {
+    setShowTimerEndDialog(false);
+    setPendingTimerAction(null);
+  };
+
   if (isNoteTaking) {
     return (
       <div className="flex flex-col h-full bg-black text-white animate-fade-in">
@@ -105,6 +163,13 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             <ChevronLeftIcon className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-bold">Add Session Note</h1>
+          {showTimerEndDialog && (
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+              <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold animate-pulse">
+                TIMER ENDED
+              </div>
+            </div>
+          )}
         </header>
         <main className="flex-grow p-4">
           <textarea
@@ -120,6 +185,40 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             Save Note
           </button>
         </footer>
+
+        {/* Timer End Dialog */}
+        {showTimerEndDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full">
+              <h3 className="text-xl font-bold text-white mb-4">
+                Timer Ended
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Your {isBreak ? 'break' : 'session'} has ended while you were writing a note. What would you like to do?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={handleSaveAndContinue}
+                  className="w-full p-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  Save Note & Continue
+                </button>
+                <button
+                  onClick={handleDiscardAndContinue}
+                  className="w-full p-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                >
+                  Discard Note & Continue
+                </button>
+                <button
+                  onClick={handleCancelTimerEnd}
+                  className="w-full p-3 bg-transparent text-gray-400 border border-gray-600 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -130,6 +229,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
       <header className="p-4 text-center">
         <h2 className="text-gray-400">{config.activity.name}</h2>
         <h1 className="text-2xl font-bold">{isBreak ? 'Break' : `Session ${currentSession}/${sessionCount}`}</h1>
+
       </header>
 
       <main className="flex-grow flex flex-col items-center justify-center p-4">
@@ -194,6 +294,16 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             <TrackIcon className="w-7 h-7" />
             <span className="text-xs mt-1">Track</span>
           </button>
+          {!timerState.isActive && (
+            <button 
+              onClick={playNotificationSound} 
+              disabled={!soundEnabled}
+              className={`flex flex-col items-center transition-colors ${soundEnabled ? 'text-gray-400 hover:text-white' : 'text-gray-600'}`}
+            >
+              <span className="text-2xl">🔊</span>
+              <span className="text-xs mt-1">Test</span>
+            </button>
+          )}
           <button onClick={onGoHome} className="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
             <HomeIcon className="w-7 h-7" />
             <span className="text-xs mt-1">Home</span>

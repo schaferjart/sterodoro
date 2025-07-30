@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
+import { formatLocalDate, formatLocalDateOnly, getRelativeTimeString } from '../lib/time-utils';
 import { SessionLog, IntakeLog, AppLog, ReadingLog, NoteLog } from '../types';
 import { ChevronLeftIcon, NoteIcon, DownloadIcon } from '../components/Icons';
 
 const formatDateTime = (timestamp: string | number) => {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString(undefined, {
+  return formatLocalDate(timestamp, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -28,25 +28,38 @@ const DetailItem: React.FC<{ label: string; value: string | number | undefined }
   return <p className="text-gray-300"><span className="font-semibold text-gray-400">{label}:</span> {value}</p>;
 };
 
-const SessionLogItem: React.FC<{ log: SessionLog }> = ({ log }) => {
+const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
 
   return (
     <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full text-left p-4 flex justify-between items-center"
-        aria-expanded={isExpanded}
-      >
-        <div>
-          <p className="font-bold text-white">{log.Object.name}</p>
-          <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
-        </div>
-        <div className="text-right">
-          <p className="font-semibold text-indigo-400">{formatDuration(durationMs)}</p>
-        </div>
-      </button>
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex-1 text-left flex justify-between items-center"
+          aria-expanded={isExpanded}
+        >
+          <div>
+            <p className="font-bold text-white">{log.Object.name}</p>
+            <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold text-indigo-400">{formatDuration(durationMs)}</p>
+          </div>
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`Delete this session log for "${log.Object.name}"?`)) {
+              onDelete(log.id);
+            }
+          }}
+          className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+          title="Delete log"
+        >
+          ×
+        </button>
+      </div>
       {isExpanded && (
         <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
           <div>
@@ -94,24 +107,37 @@ const SessionLogItem: React.FC<{ log: SessionLog }> = ({ log }) => {
   );
 };
 
-const IntakeLogItem: React.FC<{ log: IntakeLog }> = ({ log }) => {
+const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
       <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full text-left p-4 flex justify-between items-center"
-          aria-expanded={isExpanded}
-        >
-          <div>
-            <p className="font-bold text-white">{log.intake.name}</p>
-            <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-teal-400">{log.quantity} {log.unit}</p>
-          </div>
-        </button>
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div>
+              <p className="font-bold text-white">{log.intake.name}</p>
+              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-teal-400">{log.quantity} {log.unit}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this intake log for "${log.intake.name}"?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
         {isExpanded && (
           <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
             <div>
@@ -127,26 +153,39 @@ const IntakeLogItem: React.FC<{ log: IntakeLog }> = ({ log }) => {
     );
 };
 
-const ReadingLogItem: React.FC<{ log: ReadingLog }> = ({ log }) => {
+const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
   
     return (
       <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full text-left p-4 flex justify-between items-center"
-          aria-expanded={isExpanded}
-        >
-          <div>
-            <p className="font-bold text-white">{log.Object.bookName}</p>
-            <p className="text-sm text-gray-400">{log.Object.author}</p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-cyan-400">{formatDuration(durationMs)}</p>
-            <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
-          </div>
-        </button>
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div>
+              <p className="font-bold text-white">{log.Object.bookName}</p>
+              <p className="text-sm text-gray-400">{log.Object.author}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-cyan-400">{formatDuration(durationMs)}</p>
+              <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this reading log for "${log.Object.bookName}"?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
         {isExpanded && (
             <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
             <div>
@@ -192,24 +231,37 @@ const ReadingLogItem: React.FC<{ log: ReadingLog }> = ({ log }) => {
     );
 };
 
-const NoteLogItem: React.FC<{ log: NoteLog }> = ({ log }) => {
+const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
       <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full text-left p-4 flex justify-between items-center"
-          aria-expanded={isExpanded}
-        >
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white truncate">{log.title || 'Note'}</p>
-            <p className="text-sm text-gray-400 truncate">{log.content}</p>
-          </div>
-          <div className="text-right flex-shrink-0 ml-4">
-            <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
-          </div>
-        </button>
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-white truncate">{log.title || 'Note'}</p>
+              <p className="text-sm text-gray-400 truncate">{log.content}</p>
+            </div>
+            <div className="text-right flex-shrink-0 ml-4">
+              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this note log "${log.title || 'Note'}"?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
         {isExpanded && (
           <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
             <div>
@@ -255,7 +307,14 @@ const NoteLogItem: React.FC<{ log: NoteLog }> = ({ log }) => {
 };
 
 
-const HistoryScreen: React.FC<{ logs: AppLog[]; onBack: () => void }> = ({ logs, onBack }) => {
+const HistoryScreen: React.FC<{ 
+  logs: AppLog[]; 
+  onBack: () => void;
+  onDeleteSessionLog: (id: string) => Promise<void>;
+  onDeleteIntakeLog: (id: string) => Promise<void>;
+  onDeleteReadingLog: (id: string) => Promise<void>;
+  onDeleteNoteLog: (id: string) => Promise<void>;
+}> = ({ logs, onBack, onDeleteSessionLog, onDeleteIntakeLog, onDeleteReadingLog, onDeleteNoteLog }) => {
   const handleExport = () => {
     if (logs.length === 0) return;
 
@@ -264,7 +323,7 @@ const HistoryScreen: React.FC<{ logs: AppLog[]; onBack: () => void }> = ({ logs,
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const date = new Date().toISOString().split('T')[0];
+      const date = formatLocalDateOnly(new Date());
       link.href = url;
       link.download = `sterodoro-logs_${date}.json`;
       document.body.appendChild(link);
@@ -303,16 +362,16 @@ const HistoryScreen: React.FC<{ logs: AppLog[]; onBack: () => void }> = ({ logs,
           <ul className="space-y-3">
             {logs.map((log) => {
               if ('intake' in log) {
-                return <IntakeLogItem key={log.id} log={log as IntakeLog} />;
+                return <IntakeLogItem key={log.id} log={log as IntakeLog} onDelete={onDeleteIntakeLog} />;
               }
               if ('Object' in log && 'bookName' in (log as ReadingLog).Object) {
-                return <ReadingLogItem key={log.id} log={log as ReadingLog} />;
+                return <ReadingLogItem key={log.id} log={log as ReadingLog} onDelete={onDeleteReadingLog} />;
               }
               if ('TimeStart' in log) {
-                return <SessionLogItem key={log.id} log={log as SessionLog} />;
+                return <SessionLogItem key={log.id} log={log as SessionLog} onDelete={onDeleteSessionLog} />;
               }
               if ('content' in log) {
-                return <NoteLogItem key={log.id} log={log as NoteLog} />;
+                return <NoteLogItem key={log.id} log={log as NoteLog} onDelete={onDeleteNoteLog} />;
               }
               return null;
             })}

@@ -51,6 +51,9 @@ export default defineConfig(({ mode }) => {
               },
             ],
           },
+          // Use our custom service worker
+          srcDir: 'public',
+          filename: 'sw.js',
         }),
       ],
     };

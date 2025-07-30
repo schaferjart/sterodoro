@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { formatDateForInput, getCurrentLocalTime } from '../lib/time-utils';
 import { ActivityCategory, ActivityObject, SessionConfig, TrackerFrequency, IntakeObject, IntakeType, IntakeUnit, ReadingObject, TrackerEntry } from '../types';
 import { TRACKERS, READING_OBJECTS } from '../constants';
 import { HistoryIcon } from '../components/Icons';
@@ -42,11 +43,16 @@ interface SetupScreenProps {
   onLogNote: (data: NoteLogPayload) => void;
   onShowHistory: () => void;
   activities: ActivityObject[];
-  onAddNewActivity: (newActivity: Omit<ActivityObject, 'id'>) => ActivityObject;
+  onAddNewActivity: (newActivity: Omit<ActivityObject, 'id'>) => Promise<ActivityObject>;
+  onDeleteActivity: (id: string) => Promise<void>;
   intakes: IntakeObject[];
-  onAddNewIntake: (newIntake: Omit<IntakeObject, 'id'>) => IntakeObject;
+  onAddNewIntake: (newIntake: Omit<IntakeObject, 'id'>) => Promise<IntakeObject>;
+  onDeleteIntake: (id: string) => Promise<void>;
   readingObjects: ReadingObject[];
-  onAddNewReadingObject: (newReadingObject: Omit<ReadingObject, 'id'>) => ReadingObject;
+  onAddNewReadingObject: (newReadingObject: Omit<ReadingObject, 'id'>) => Promise<ReadingObject>;
+  onDeleteReadingObject: (id: string) => Promise<void>;
+  soundEnabled: boolean;
+  onSoundEnabledChange: (enabled: boolean) => void;
 }
 
 const formatDuration = (seconds: number): string => {
@@ -217,8 +223,8 @@ const AddReadingModal: React.FC<{
 };
 
 
-const SetupScreen: React.FC<SetupScreenProps> = (props) => {
-  const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, onShowHistory, activities, onAddNewActivity, intakes, onAddNewIntake, readingObjects, onAddNewReadingObject } = props;
+const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledChange, ...props }) => {
+  const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, onShowHistory, activities, onAddNewActivity, onDeleteActivity, intakes, onAddNewIntake, onDeleteIntake, readingObjects, onAddNewReadingObject, onDeleteReadingObject } = props;
   const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE'>('TIMER');
   
   // Activity states
@@ -265,11 +271,7 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
     }, {} as Record<ActivityCategory, ActivityObject[]>);
   }, [activities]);
 
-  const formatDateForInput = (date: Date) => {
-    const d = new Date(date);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
-  };
+  // formatDateForInput is now imported from time-utils
   
   const resetForms = useCallback(() => {
     setSelectedCategory(null);
@@ -298,12 +300,20 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
     resetForms();
   }, [mode, resetForms]);
 
-  const handleAddNewActivityAndSelect = (activityData: Omit<ActivityObject, 'id' | 'category'>) => {
-      if (selectedCategory) {
-          const newActivity = onAddNewActivity({ ...activityData, category: selectedCategory });
-          setSelectedActivity(newActivity);
-          setIsAddingActivity(false);
-      }
+  const handleAddNewActivityAndSelect = async (activityData: Omit<ActivityObject, 'id' | 'category'>) => {
+    if (!selectedCategory) {
+      alert('Please select a category first');
+      return;
+    }
+    
+    try {
+      const newActivity = await onAddNewActivity({ ...activityData, category: selectedCategory });
+      setSelectedActivity(newActivity);
+      setIsAddingActivity(false);
+    } catch (error) {
+      console.error('Failed to add new activity:', error);
+      alert('Failed to add new activity. Please try again.');
+    }
   };
   
   const handleToggleIntake = (intakeId: string) => {
@@ -314,18 +324,28 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
     setSelectedIntakeIds(newIds);
   };
 
-  const handleAddNewIntakeAndSelect = (intakeData: Omit<IntakeObject, 'id'>) => {
-    const newIntake = onAddNewIntake(intakeData);
-    if (!selectedIntakeIds.includes(newIntake.id)) {
-        handleToggleIntake(newIntake.id);
+  const handleAddNewIntakeAndSelect = async (intakeData: Omit<IntakeObject, 'id'>) => {
+    try {
+      const newIntake = await onAddNewIntake(intakeData);
+      if (!selectedIntakeIds.includes(newIntake.id)) {
+          handleToggleIntake(newIntake.id);
+      }
+      setIsAddingIntake(false);
+    } catch (error) {
+      console.error('Failed to add new intake:', error);
+      alert('Failed to add new intake. Please try again.');
     }
-    setIsAddingIntake(false);
   };
   
-  const handleAddNewReadingObjectAndSelect = (readingData: Omit<ReadingObject, 'id'>) => {
-    const newReadingObject = onAddNewReadingObject(readingData);
-    setSelectedReadingObject(newReadingObject);
-    setIsAddingReadingObject(false);
+  const handleAddNewReadingObjectAndSelect = async (readingData: Omit<ReadingObject, 'id'>) => {
+    try {
+      const newReadingObject = await onAddNewReadingObject(readingData);
+      setSelectedReadingObject(newReadingObject);
+      setIsAddingReadingObject(false);
+    } catch (error) {
+      console.error('Failed to add new reading object:', error);
+      alert('Failed to add new reading object. Please try again.');
+    }
   };
 
   const handleToggleNoteActivity = (activityId: string) => {
@@ -433,7 +453,7 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
         onLogNote({
             title: noteTitle,
             content: noteContent,
-            timestamp: new Date().toISOString(),
+            timestamp: getCurrentLocalTime(),
             trackerMetrics: trackerMetrics ?? undefined,
             relatedActivities: relatedActivities.length > 0 ? relatedActivities : undefined,
         });
@@ -524,15 +544,42 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
             <>
               <div className="p-4 space-y-3">
                 {renderSectionHeader('Select Intake Item(s)')}
-                <div className="grid grid-cols-3 gap-2">
-                    {intakes.map(intake => {
-                        const isSelected = selectedIntakeIds.includes(intake.id);
-                        return (
-                            <button key={intake.id} onClick={() => handleToggleIntake(intake.id)} className={`p-3 rounded-lg text-sm transition-colors text-center truncate ${isSelected ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-gray-800'}`}>{intake.name}</button>
-                        )
-                    })}
-                    <button onClick={() => setIsAddingIntake(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Add New...</button>
-                </div>
+                {intakes.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-gray-400 mb-4">No intake items yet</p>
+                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                            Create Your First Intake Item
+                        </button>
+                    </div>
+                ) : (
+                                            <div className="grid grid-cols-3 gap-2">
+                            {intakes.map(intake => {
+                                const isSelected = selectedIntakeIds.includes(intake.id);
+                                return (
+                                    <div key={intake.id} className="relative group">
+                                        <button 
+                                            onClick={() => handleToggleIntake(intake.id)} 
+                                            className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${isSelected ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-gray-800'}`}
+                                        >
+                                            {intake.name}
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                if (confirm(`Delete "${intake.name}"? This will permanently delete this intake and ALL intake logs that used it.`)) {
+                                                    onDeleteIntake(intake.id);
+                                                }
+                                            }}
+                                            className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete intake"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                )
+                            })}
+                            <button onClick={() => setIsAddingIntake(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Add New...</button>
+                        </div>
+                )}
               </div>
               {selectedIntakeIds.length > 0 && (
                 <div className="p-4 space-y-3">
@@ -544,10 +591,39 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
             <>
               <div className="p-4 space-y-3">
                   {renderSectionHeader('Book')}
-                  <div className="grid grid-cols-3 gap-2">
-                      {readingObjects.map(book => (<button key={book.id} onClick={() => setSelectedReadingObject(book)} className={`p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedReadingObject?.id === book.id ? 'bg-indigo-600' : 'bg-gray-800'}`}>{book.bookName}</button>))}
-                      <button onClick={() => setIsAddingReadingObject(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
-                  </div>
+                  {readingObjects.length === 0 ? (
+                      <div className="text-center py-8">
+                          <p className="text-gray-400 mb-4">No books yet</p>
+                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                              Add Your First Book
+                          </button>
+                      </div>
+                  ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                          {readingObjects.map(book => (
+                              <div key={book.id} className="relative group">
+                                  <button 
+                                      onClick={() => setSelectedReadingObject(book)} 
+                                      className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedReadingObject?.id === book.id ? 'bg-indigo-600' : 'bg-gray-800'}`}
+                                  >
+                                      {book.bookName}
+                                  </button>
+                                  <button 
+                                      onClick={() => {
+                                          if (confirm(`Delete "${book.bookName}"? This will permanently delete this book and ALL reading logs that used it.`)) {
+                                              onDeleteReadingObject(book.id);
+                                          }
+                                      }}
+                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Delete book"
+                                  >
+                                      ×
+                                  </button>
+                              </div>
+                          ))}
+                          <button onClick={() => setIsAddingReadingObject(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
+                      </div>
+                  )}
               </div>
               {selectedReadingObject && (
                   <>
@@ -600,10 +676,39 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
               {selectedCategory && (
                   <div className="p-4 space-y-3">
                       {renderSectionHeader('Activity')}
-                      <div className="grid grid-cols-3 gap-2">
-                          {filteredActivities.map(act => (<button key={act.id} onClick={() => setSelectedActivity(act)} className={`p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedActivity?.id === act.id ? 'bg-indigo-600' : 'bg-gray-800'}`}>{act.name}</button>))}
-                          <button onClick={() => setIsAddingActivity(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
-                      </div>
+                      {filteredActivities.length === 0 ? (
+                          <div className="text-center py-8">
+                              <p className="text-gray-400 mb-4">No activities yet for {selectedCategory}</p>
+                              <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                                  Create Your First Activity
+                              </button>
+                          </div>
+                      ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                              {filteredActivities.map(act => (
+                                <div key={act.id} className="relative group">
+                                  <button 
+                                    onClick={() => setSelectedActivity(act)} 
+                                    className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedActivity?.id === act.id ? 'bg-indigo-600' : 'bg-gray-800'}`}
+                                  >
+                                    {act.name}
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      if (confirm(`Delete "${act.name}"? This will permanently delete this activity and ALL session logs that used it.`)) {
+                                        onDeleteActivity(act.id);
+                                      }
+                                    }}
+                                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Delete activity"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                              <button onClick={() => setIsAddingActivity(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
+                          </div>
+                      )}
                   </div>
               )}
               {selectedActivity && mode === 'TIMER' && (
@@ -624,8 +729,8 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
                               <span className="font-bold text-lg">{sessionCount}</span>
                           </button>
                       </div>
-                      {activeSlider === 'session' && <div className="pt-3"><Slider min={5} max={180 * 60} step={5} value={sessionDuration} onChange={setSessionDuration} label={formatDuration(sessionDuration)} /></div>}
-                      {activeSlider === 'break' && <div className="pt-3"><Slider min={1} max={60 * 60} step={1} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
+                      {activeSlider === 'session' && <div className="pt-3"><Slider min={5} max={20} step={1} value={sessionDuration} onChange={setSessionDuration} label={formatDuration(sessionDuration)} /></div>}
+                      {activeSlider === 'break' && <div className="pt-3"><Slider min={1} max={10} step={1} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
                       {activeSlider === 'count' && <div className="pt-3"><Slider min={1} max={10} step={1} value={sessionCount} onChange={setSessionCount} label={`${sessionCount} sessions`} /></div>}
                   </div>
                   <div className="p-4 space-y-3">
@@ -641,6 +746,38 @@ const SetupScreen: React.FC<SetupScreenProps> = (props) => {
                         <button onClick={() => setTrackerFrequency('end_of_session')} className={`p-3 rounded-lg text-sm transition-colors text-center ${trackerFrequency === 'end_of_session' ? 'bg-indigo-600' : 'bg-gray-800'}`}>End of Session</button>
                       </div>
                   </div>)}
+                  <div className="p-4 space-y-3">
+                      {renderSectionHeader('Sound Notifications')}
+                      <div className="bg-gray-800 p-3 rounded-lg">
+                          <div className="flex items-center justify-between">
+                              <div>
+                                  <p className="text-white font-medium">Session & Break Sounds</p>
+                                  <p className="text-gray-400 text-sm">Play notification sounds when sessions and breaks end</p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                  <button 
+                                      onClick={() => {
+                                          if (soundEnabled) {
+                                              const audio = new Audio('/sound.mp3');
+                                              audio.play().catch(console.warn);
+                                          }
+                                      }}
+                                      disabled={!soundEnabled}
+                                      className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-600'}`}
+                                      title="Test sound"
+                                  >
+                                      🔊
+                                  </button>
+                                  <button
+                                      onClick={() => onSoundEnabledChange(!soundEnabled)}
+                                      className={`px-3 py-1 rounded text-sm transition-colors ${soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'}`}
+                                  >
+                                      {soundEnabled ? '✓ Enabled' : '✗ Disabled'}
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
                 </>
               )}
               {selectedActivity && mode === 'RECORD' && (

@@ -53,18 +53,21 @@ const IOSNotificationHelper: React.FC = () => {
       
       <div className="space-y-3">
         <div className="text-blue-200 text-sm">
-          <div className="font-bold mb-1">ℹ️ iOS Limitations:</div>
-          <div>• No push notifications when app is closed</div>
-          <div>• No background sound</div>
-          <div>• Timer continues running ✅</div>
-          <div>• Sound works when app is active ✅</div>
+          <div className="font-bold mb-1">ℹ️ iOS PWA Limitations:</div>
+          <div>• ❌ No push notifications (iOS restriction)</div>
+          <div>• ❌ No background sound (iOS restriction)</div>
+          <div>• ❌ No Web Push API support</div>
+          <div>• ✅ Timer continues running in background</div>
+          <div>• ✅ Vibration alerts work</div>
+          <div>• ✅ Sound works when app is active</div>
         </div>
         
         <div className="text-blue-200 text-sm">
-          <div className="font-bold mb-1">💡 Best Practices:</div>
-          <div>• Keep app open during timer</div>
-          <div>• Use vibration alerts</div>
-          <div>• Check timer periodically</div>
+          <div className="font-bold mb-1">💡 iOS Best Practices:</div>
+          <div>• Install as PWA (Safari → Home Screen)</div>
+          <div>• Keep app open during timer for best experience</div>
+          <div>• Rely on vibration alerts (3 short vibrations)</div>
+          <div>• Check timer periodically if needed</div>
         </div>
         
         <button

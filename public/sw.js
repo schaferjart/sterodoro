@@ -63,57 +63,54 @@ self.addEventListener('sync', (event) => {
 // Platform detection
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-// Handle push notifications (Android/Desktop only)
-if (!isIOS) {
-  self.addEventListener('push', (event) => {
-    console.log('Push notification received:', event);
-    
-    const options = {
-      body: event.data ? event.data.text() : 'Timer completed!',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      tag: 'timer-notification',
-      requireInteraction: true,
-      actions: [
-        {
-          action: 'open',
-          title: 'Open App'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ]
-    };
-    
-    event.waitUntil(
-      self.registration.showNotification('Sterodoro Timer', options)
-    );
-  });
+// Handle push notifications (All platforms including iOS 18.5+)
+self.addEventListener('push', (event) => {
+  console.log('Push notification received:', event);
+  
+  const options = {
+    body: event.data ? event.data.text() : 'Timer completed!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'timer-notification',
+    requireInteraction: true,
+    silent: false, // Enable sound
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      },
+      {
+        action: 'dismiss',
+        title: 'Dismiss'
+      }
+    ]
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification('Sterodoro Timer', options)
+  );
+});
 
-  // Handle notification clicks (Android/Desktop only)
-  self.addEventListener('notificationclick', (event) => {
-    console.log('Notification clicked:', event);
-    
-    event.notification.close();
-    
-    if (event.action === 'open' || event.action === '') {
-      event.waitUntil(
-        self.clients.matchAll({ type: 'window' })
-          .then((clients) => {
-            // If app is already open, focus it
-            if (clients.length > 0) {
-              return clients[0].focus();
-            }
-            // Otherwise, open the app
-            return self.clients.openWindow('/');
-          })
-      );
-    }
-  });
-} else {
-  console.log('iOS detected - push notifications not supported');
-}
+// Handle notification clicks (All platforms including iOS 18.5+)
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+  
+  if (event.action === 'open' || event.action === '') {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' })
+        .then((clients) => {
+          // If app is already open, focus it
+          if (clients.length > 0) {
+            return clients[0].focus();
+          }
+          // Otherwise, open the app
+          return self.clients.openWindow('/');
+        })
+    );
+  }
+});
 
 // Handle messages from the main app
 self.addEventListener('message', (event) => {
@@ -151,59 +148,44 @@ async function handleTimerEnd(data) {
   try {
     console.log('Handling timer end in background:', data);
     
-    if (isIOS) {
-      // iOS: Only vibration (no notifications)
-      console.log('iOS: Using vibration only');
-      try {
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200, 100, 200]);
-          console.log('iOS: Vibration triggered');
+    // Show notification (works on all platforms including iOS 18.5+)
+    const options = {
+      body: `${data.isBreak ? 'Break' : 'Session'} completed!`,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'timer-end',
+      requireInteraction: true,
+      silent: false, // Enable sound
+      actions: [
+        {
+          action: 'open',
+          title: 'Open App'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
         }
-      } catch (error) {
-        console.log('iOS: Vibration failed:', error);
+      ]
+    };
+    
+    await self.registration.showNotification('Sterodoro Timer', options);
+    
+    // Try to play sound using Audio API
+    try {
+      const audio = new Audio('/sound.mp3');
+      await audio.play();
+    } catch (error) {
+      console.log('Could not play sound in background:', error);
+    }
+    
+    // Try vibration (works on all platforms)
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+        console.log('Vibration triggered');
       }
-    } else {
-      // Android/Desktop: Full notification support
-      console.log('Android/Desktop: Using full notifications');
-      
-      // Show notification
-      const options = {
-        body: `${data.isBreak ? 'Break' : 'Session'} completed!`,
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        tag: 'timer-end',
-        requireInteraction: true,
-        silent: false, // This should trigger sound
-        actions: [
-          {
-            action: 'open',
-            title: 'Open App'
-          },
-          {
-            action: 'dismiss',
-            title: 'Dismiss'
-          }
-        ]
-      };
-      
-      await self.registration.showNotification('Sterodoro Timer', options);
-      
-      // Try to play sound using Audio API (may not work in all browsers)
-      try {
-        const audio = new Audio('/sound.mp3');
-        await audio.play();
-      } catch (error) {
-        console.log('Could not play sound in background:', error);
-      }
-      
-      // Try vibration (works better on iOS)
-      try {
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200, 100, 200]);
-        }
-      } catch (error) {
-        console.log('Vibration not available in service worker:', error);
-      }
+    } catch (error) {
+      console.log('Vibration not available in service worker:', error);
     }
     
   } catch (error) {

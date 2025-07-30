@@ -16,11 +16,11 @@
 - **Sound**: ✅ Works in background
 - **Vibration**: ❌ Not available
 
-### ❌ iOS Safari (PWA)
-- **Push Notifications**: ❌ Not supported
-- **Background Sync**: ❌ Limited support
-- **Service Workers**: ❌ Limited functionality
-- **Sound**: ❌ Only when app is active
+### ✅ iOS Safari (PWA) - iOS 18.5+
+- **Push Notifications**: ✅ Full support
+- **Background Sync**: ✅ Full support
+- **Service Workers**: ✅ Full support
+- **Sound**: ✅ Works in background
 - **Vibration**: ✅ Works in background
 
 ## Implementation Details
@@ -46,11 +46,12 @@ else {
 
 ### Timer End Handling
 
-#### iOS Flow:
+#### iOS 18.5+ Flow:
 1. Timer ends → Service worker receives message
-2. Service worker triggers vibration only
-3. No system notifications possible
-4. User must check app manually
+2. Service worker shows system notification
+3. Sound plays (if supported)
+4. Vibration triggers
+5. User can click notification to open app
 
 #### Android/Desktop Flow:
 1. Timer ends → Service worker receives message
@@ -61,11 +62,11 @@ else {
 
 ## Current Limitations
 
-### iOS Safari PWA
-- **No Web Push API**: Apple doesn't support it
-- **No Background Notifications**: Cannot show notifications when app is closed
-- **Limited Service Worker**: Cannot run background tasks
-- **No Background Audio**: Cannot play sound when app is inactive
+### iOS Safari PWA (iOS 18.5+)
+- **Web Push API**: ✅ Now supported by Apple
+- **Background Notifications**: ✅ Can show notifications when app is closed
+- **Full Service Worker**: ✅ Can run background tasks
+- **Background Audio**: ✅ Can play sound when app is inactive
 
 ### Workarounds for iOS
 - **Vibration Alerts**: 3 short vibrations when timer ends

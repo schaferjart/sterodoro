@@ -40,6 +40,8 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
   const [pendingTimerAction, setPendingTimerAction] = useState<(() => void) | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const timerStartTimeRef = useRef<number>(0);
+  const isPageVisibleRef = useRef<boolean>(true);
 
   const playNotificationSound = useCallback(() => {
     if (audioRef.current && soundEnabled) {
@@ -50,23 +52,95 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
     }
   }, [soundEnabled]);
 
+  // Handle page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isPageVisibleRef.current = !document.hidden;
+      
+      if (timerState.isActive && !document.hidden) {
+        // App came back to foreground, recalculate timer
+        const currentTime = Date.now();
+        const elapsedSinceStart = Math.floor((currentTime - timerStartTimeRef.current) / 1000);
+        const expectedRemaining = Math.max(0, totalDuration - elapsedSinceStart);
+        
+        setTimerState((prev: any) => ({
+          ...prev,
+          timeRemaining: expectedRemaining,
+          madeTime: Math.min(elapsedSinceStart, totalDuration)
+        }));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [timerState.isActive, totalDuration, setTimerState]);
+
+  // Reset timer start time when timer becomes inactive
+  useEffect(() => {
+    if (!timerState.isActive) {
+      timerStartTimeRef.current = 0;
+    }
+  }, [timerState.isActive]);
+
 
   useEffect(() => {
     if (!timerState.isActive) return;
-    const timer = setInterval(() => {
-      setTimerState((prev: any) => {
-        if (prev.timeRemaining > 0) {
-          return { ...prev, timeRemaining: prev.timeRemaining - 1, madeTime: prev.madeTime + 1 };
-        }
-        return prev;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
+    
+    // Record start time when timer becomes active
+    if (timerStartTimeRef.current === 0) {
+      timerStartTimeRef.current = Date.now();
+    }
+    
+    let animationFrameId: number;
+    let lastUpdateTime = Date.now();
+    
+    const updateTimer = () => {
+      const currentTime = Date.now();
+      const elapsedSeconds = Math.floor((currentTime - lastUpdateTime) / 1000);
+      
+      if (elapsedSeconds >= 1) {
+        setTimerState((prev: any) => {
+          if (prev.timeRemaining > 0) {
+            const newTimeRemaining = Math.max(0, prev.timeRemaining - elapsedSeconds);
+            const newMadeTime = prev.madeTime + elapsedSeconds;
+            
+            return { 
+              ...prev, 
+              timeRemaining: newTimeRemaining, 
+              madeTime: newMadeTime 
+            };
+          }
+          return prev;
+        });
+        
+        lastUpdateTime = currentTime;
+      }
+      
+      animationFrameId = requestAnimationFrame(updateTimer);
+    };
+    
+    animationFrameId = requestAnimationFrame(updateTimer);
+    
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [timerState.isActive, setTimerState]);
 
   useEffect(() => {
     if (timeRemaining <= 0 && timerState.isActive) {
+      // Show notification if app is in background
+      if (document.hidden) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Sterodoro Timer', {
+            body: `${isBreak ? 'Break' : 'Session'} completed!`,
+            icon: '/icon-192.png',
+            tag: 'timer-end'
+          });
+        }
+      }
+
       // If user is writing a note, handle it gracefully
       if (isNoteTaking && noteText.trim()) {
         setShowTimerEndDialog(true);

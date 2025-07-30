@@ -17,6 +17,7 @@ import { BackgroundSyncTest } from './components/BackgroundSyncTest';
 import SyncQueueViewer from './components/SyncQueueViewer';
 import AuthStatusChecker from './components/AuthStatusChecker';
 import NotificationPermission from './components/NotificationPermission';
+import PushNotificationManager from './components/PushNotificationManager';
 import SoundTest from './components/SoundTest';
 import IOSNotificationHelper from './components/IOSNotificationHelper';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -974,6 +975,7 @@ const App: React.FC = () => {
             <BackgroundSyncTest />
             <OfflineStorageTest />
             <SyncQueueViewer />
+            <PushNotificationManager />
           </div>
         )}
         

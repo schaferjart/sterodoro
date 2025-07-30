@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { SessionConfig } from '../types';
 import { NoteIcon, TrackIcon, HomeIcon, ChevronLeftIcon } from '../components/Icons';
+import { pushNotificationManager } from '../lib/push-notifications';
 
 interface TimerScreenProps {
   config: SessionConfig;
@@ -89,6 +90,21 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
     // Record start time when timer becomes active
     if (timerStartTimeRef.current === 0) {
       timerStartTimeRef.current = Date.now();
+      
+      // Schedule remote push notification for timer end
+      const endTime = new Date(Date.now() + (timeRemaining * 1000));
+      pushNotificationManager.scheduleTimerNotification({
+        isBreak: isBreak,
+        currentSession: currentSession,
+        sessionCount: sessionCount,
+        endTime: endTime
+      }).then(scheduled => {
+        if (scheduled) {
+          console.log('✅ Remote push notification scheduled for timer end');
+        } else {
+          console.log('⚠️ Failed to schedule remote push notification');
+        }
+      });
     }
     
     let animationFrameId: number;

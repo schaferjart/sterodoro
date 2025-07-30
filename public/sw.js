@@ -63,17 +63,46 @@ self.addEventListener('sync', (event) => {
 // Platform detection
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-// Handle push notifications (All platforms including iOS 18.5+)
+// Handle remote push notifications (All platforms including iOS 18.5+)
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   
+  let notificationData = {
+    title: 'Sterodoro Timer',
+    body: 'Timer completed!',
+    isBreak: false,
+    currentSession: 1,
+    sessionCount: 1
+  };
+  
+  // Parse push data if available
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: 'Sterodoro Timer',
+        body: `${data.isBreak ? 'Break' : 'Session'} completed!`,
+        isBreak: data.isBreak || false,
+        currentSession: data.currentSession || 1,
+        sessionCount: data.sessionCount || 1
+      };
+    } catch (error) {
+      console.log('Failed to parse push data:', error);
+    }
+  }
+  
   const options = {
-    body: event.data ? event.data.text() : 'Timer completed!',
+    body: notificationData.body,
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     tag: 'timer-notification',
     requireInteraction: true,
     silent: false, // Enable sound
+    data: {
+      isBreak: notificationData.isBreak,
+      currentSession: notificationData.currentSession,
+      sessionCount: notificationData.sessionCount
+    },
     actions: [
       {
         action: 'open',
@@ -87,7 +116,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification('Sterodoro Timer', options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 

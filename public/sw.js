@@ -60,6 +60,63 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Handle push notifications
+self.addEventListener('push', (event) => {
+  console.log('Push notification received:', event);
+  
+  const options = {
+    body: event.data ? event.data.text() : 'Timer completed!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'timer-notification',
+    requireInteraction: true,
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      },
+      {
+        action: 'dismiss',
+        title: 'Dismiss'
+      }
+    ]
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification('Sterodoro Timer', options)
+  );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+  
+  if (event.action === 'open' || event.action === '') {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' })
+        .then((clients) => {
+          // If app is already open, focus it
+          if (clients.length > 0) {
+            return clients[0].focus();
+          }
+          // Otherwise, open the app
+          return self.clients.openWindow('/');
+        })
+    );
+  }
+});
+
+// Handle messages from the main app
+self.addEventListener('message', (event) => {
+  console.log('Service worker received message:', event.data);
+  
+  if (event.data.type === 'TIMER_END') {
+    handleTimerEnd(event.data);
+  }
+});
+
 // Handle background sync
 async function handleBackgroundSync() {
   try {
@@ -79,6 +136,46 @@ async function handleBackgroundSync() {
     console.log('Background sync completed');
   } catch (error) {
     console.error('Background sync failed:', error);
+  }
+}
+
+// Handle timer end in background
+async function handleTimerEnd(data) {
+  try {
+    console.log('Handling timer end in background:', data);
+    
+    // Show notification
+    const options = {
+      body: `${data.isBreak ? 'Break' : 'Session'} completed!`,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'timer-end',
+      requireInteraction: true,
+      silent: false, // This should trigger sound
+      actions: [
+        {
+          action: 'open',
+          title: 'Open App'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ]
+    };
+    
+    await self.registration.showNotification('Sterodoro Timer', options);
+    
+    // Try to play sound using Audio API (may not work in all browsers)
+    try {
+      const audio = new Audio('/sound.mp3');
+      await audio.play();
+    } catch (error) {
+      console.log('Could not play sound in background:', error);
+    }
+    
+  } catch (error) {
+    console.error('Failed to handle timer end:', error);
   }
 }
 

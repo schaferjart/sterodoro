@@ -130,13 +130,24 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
 
   useEffect(() => {
     if (timeRemaining <= 0 && timerState.isActive) {
+      // Send message to service worker for background notification
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'TIMER_END',
+          isBreak: isBreak,
+          currentSession: currentSession,
+          sessionCount: sessionCount
+        });
+      }
+      
       // Show notification if app is in background
       if (document.hidden) {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Sterodoro Timer', {
             body: `${isBreak ? 'Break' : 'Session'} completed!`,
             icon: '/icon-192.png',
-            tag: 'timer-end'
+            tag: 'timer-end',
+            requireInteraction: true
           });
         }
       }

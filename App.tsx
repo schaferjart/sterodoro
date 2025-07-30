@@ -16,6 +16,8 @@ import OfflineStorageTest from './components/OfflineStorageTest';
 import { BackgroundSyncTest } from './components/BackgroundSyncTest';
 import SyncQueueViewer from './components/SyncQueueViewer';
 import AuthStatusChecker from './components/AuthStatusChecker';
+import NotificationPermission from './components/NotificationPermission';
+import SoundTest from './components/SoundTest';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializeErrorReporting } from './lib/error-reporting';
 import { validateEnvironment } from './lib/env-validation';
@@ -965,6 +967,8 @@ const App: React.FC = () => {
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-4 space-y-2 max-w-md">
             <AuthStatusChecker />
+            <NotificationPermission />
+            <SoundTest />
             <BackgroundSyncTest />
             <OfflineStorageTest />
             <SyncQueueViewer />

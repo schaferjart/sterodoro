@@ -982,15 +982,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         color: appColors.text
       }}
     >
-      <header 
-        className="p-4 border-b text-center relative flex items-center justify-center sticky top-0 z-10"
-        style={{ 
-          backgroundColor: appColors.background,
-          borderColor: appColors.surface
-        }}
-      >
-        {/* Header content removed */}
-      </header>
+      {/* Header removed to eliminate unnecessary spacing */}
       
       <main className="flex-grow overflow-y-auto">
         <div 

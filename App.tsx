@@ -5,7 +5,6 @@ import { ACTIVITIES, INTAKE_OBJECTS, READING_OBJECTS } from './constants';
 import SetupScreen from './screens/SetupScreen';
 import TimerScreen from './screens/TimerScreen';
 import TrackerScreen from './screens/TrackerScreen';
-import HistoryScreen from './screens/HistoryScreen';
 import NotePromptScreen from './screens/NotePromptScreen';
 import AuthForm from './components/AuthForm';
 import SupabaseTest from './components/SupabaseTest';
@@ -55,8 +54,9 @@ import {
   deleteReadingLog as deleteReadingLogDB,
   deleteNoteLog as deleteNoteLogDB
 } from './lib/database';
+import { signOut } from './lib/auth';
 
-type View = 'SETUP' | 'TIMER' | 'TRACKER' | 'HISTORY' | 'PROMPT_NOTE';
+type View = 'SETUP' | 'TIMER' | 'TRACKER' | 'PROMPT_NOTE';
 
 const formatDurationForInfo = (seconds: number): string => {
   if (seconds >= 60) {
@@ -551,8 +551,6 @@ const App: React.FC = () => {
     setConfig(null);
   }, []);
 
-  const handleShowHistory = useCallback(() => setView('HISTORY'), []);
-  
   const handleAddNewActivity = useCallback(async (newActivity: Omit<ActivityObject, 'id'>) => {
     try {
       const fullActivity = await createActivityObjectDB(newActivity);
@@ -757,6 +755,22 @@ const App: React.FC = () => {
         setView('TIMER');
     }
   }
+
+  const handleLogout = useCallback(async () => {
+    try {
+      const result = await signOut();
+      if (result.success) {
+        // User will be redirected to auth form automatically via auth state change
+        console.log('User logged out successfully');
+      } else {
+        console.error('Logout failed:', result.error);
+        alert('Logout failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Logout failed. Please try again.');
+    }
+  }, []);
   
   const allLogs = useMemo(() => {
     const combined: AppLog[] = [...sessionLogs, ...intakeLogs, ...readingLogs, ...noteLogs];
@@ -783,29 +797,20 @@ const App: React.FC = () => {
             onAddNote={handleAddNote}
             notesCount={sessionNotes.length}
             soundEnabled={soundEnabled}
+            userEmail={user?.email}
           />
         );
       case 'TRACKER':
-        return config && <TrackerScreen activities={activities} config={config} onSave={handleTrackerSave} isFinalTracking={isFinalTracking} />;
+        return config && <TrackerScreen activities={activities} config={config} onSave={handleTrackerSave} isFinalTracking={isFinalTracking} userEmail={user?.email} />;
       case 'PROMPT_NOTE':
-        return <NotePromptScreen onSave={handleSavePromptedNote} onCancel={handleCancelPromptNote} isFinalNote={isFinalTracking} />;
-      case 'HISTORY':
-        return <HistoryScreen 
-          logs={allLogs} 
-          onBack={handleGoHome}
-          onDeleteSessionLog={handleDeleteSessionLog}
-          onDeleteIntakeLog={handleDeleteIntakeLog}
-          onDeleteReadingLog={handleDeleteReadingLog}
-          onDeleteNoteLog={handleDeleteNoteLog}
-        />;
-      case 'SETUP':
-      default:
-        return <SetupScreen 
-          onStartTimer={handleStartTimer} 
-          onLogActivity={handleLogActivity} 
-          onShowHistory={handleShowHistory} 
-          activities={activities} 
-          onAddNewActivity={handleAddNewActivity}
+        return <NotePromptScreen onSave={handleSavePromptedNote} onCancel={handleCancelPromptNote} isFinalNote={isFinalTracking} userEmail={user?.email} />;
+              case 'SETUP':
+        default:
+          return <SetupScreen 
+            onStartTimer={handleStartTimer} 
+            onLogActivity={handleLogActivity} 
+            activities={activities} 
+            onAddNewActivity={handleAddNewActivity}
           onDeleteActivity={handleDeleteActivity}
           intakes={intakes}
           onAddNewIntake={handleAddNewIntake}
@@ -818,6 +823,13 @@ const App: React.FC = () => {
           onLogNote={handleLogNote}
           soundEnabled={soundEnabled}
           onSoundEnabledChange={setSoundEnabled}
+          userEmail={user?.email}
+          logs={allLogs}
+          onDeleteSessionLog={handleDeleteSessionLog}
+          onDeleteIntakeLog={handleDeleteIntakeLog}
+          onDeleteReadingLog={handleDeleteReadingLog}
+          onDeleteNoteLog={handleDeleteNoteLog}
+          onLogout={handleLogout}
         />;
     }
   };
@@ -965,10 +977,10 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-gray-900 text-gray-50 min-h-screen font-sans flex flex-col items-center justify-center p-4">
+      <div className="bg-black text-gray-50 h-screen w-full font-mono flex flex-col">
         {/* Development tools - hidden in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 space-y-2 max-w-md">
+        {false && process.env.NODE_ENV === 'development' && (
+          <div className="p-4 space-y-2 bg-gray-900 border-b border-gray-800">
             <AuthStatusChecker />
             <IOSNotificationHelper />
             <NotificationPermission />
@@ -983,9 +995,11 @@ const App: React.FC = () => {
         
         {/* Show AuthForm if not authenticated, otherwise show main app */}
         {!user ? (
-          <AuthForm />
+          <div className="flex-1 flex items-center justify-center p-4">
+            <AuthForm />
+          </div>
         ) : (
-          <div className="w-full max-w-sm h-[80vh] max-h-[700px] bg-black rounded-3xl shadow-2xl flex flex-col overflow-hidden border-4 border-gray-700">
+          <div className="flex-1 w-full h-full bg-black flex flex-col overflow-hidden">
             {renderContent()}
           </div>
         )}

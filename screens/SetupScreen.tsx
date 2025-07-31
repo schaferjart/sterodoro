@@ -1,10 +1,11 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { formatDateForInput, getCurrentLocalTime } from '../lib/time-utils';
-import { ActivityCategory, ActivityObject, SessionConfig, TrackerFrequency, IntakeObject, IntakeType, IntakeUnit, ReadingObject, TrackerEntry } from '../types';
-import { TRACKERS, READING_OBJECTS } from '../constants';
-import { HistoryIcon } from '../components/Icons';
+import { ActivityCategory, ActivityObject, SessionConfig, TrackerFrequency, IntakeObject, IntakeType, IntakeUnit, ReadingObject, AppLog, SessionLog, IntakeLog, ReadingLog, NoteLog } from '../types';
+import { TRACKERS } from '../constants';
+
 import Slider from '../components/Slider';
+
 
 type IntakeLogPayload = {
     intakeObject: IntakeObject;
@@ -41,7 +42,6 @@ interface SetupScreenProps {
   onLogIntake: (data: IntakeLogPayload[]) => void;
   onLogReading: (data: ReadingLogPayload) => void;
   onLogNote: (data: NoteLogPayload) => void;
-  onShowHistory: () => void;
   activities: ActivityObject[];
   onAddNewActivity: (newActivity: Omit<ActivityObject, 'id'>) => Promise<ActivityObject>;
   onDeleteActivity: (id: string) => Promise<void>;
@@ -53,7 +53,25 @@ interface SetupScreenProps {
   onDeleteReadingObject: (id: string) => Promise<void>;
   soundEnabled: boolean;
   onSoundEnabledChange: (enabled: boolean) => void;
+  userEmail?: string;
+  logs: AppLog[];
+  onDeleteSessionLog: (id: string) => Promise<void>;
+  onDeleteIntakeLog: (id: string) => Promise<void>;
+  onDeleteReadingLog: (id: string) => Promise<void>;
+  onDeleteNoteLog: (id: string) => Promise<void>;
+  onLogout: () => Promise<void>;
 }
+
+const formatDateTime = (timestamp: string | number) => {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 const formatDuration = (seconds: number): string => {
   if (seconds >= 60) {
@@ -62,6 +80,16 @@ const formatDuration = (seconds: number): string => {
     return s === 0 ? `${m}min` : `${m}m ${s}s`;
   }
   return `${seconds}s`;
+};
+
+const formatDurationMs = (ms: number) => {
+  if (!ms || ms < 0) ms = 0;
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 };
 
 const InputField: React.FC<{
@@ -124,8 +152,8 @@ const AddActivityModal: React.FC<{
         <InputField label="Sub-Sub-Activity" value={subSubActivity} onChange={setSubSubActivity} placeholder="e.g., Login Screen" />
         <InputField label="Info" value={info} onChange={setInfo} placeholder="e.g., Focus on component library" />
         <div className="flex gap-4 pt-2">
-            <button onClick={onClose} className="w-full p-3 rounded-xl bg-gray-700 text-white font-bold">Cancel</button>
-            <button onClick={handleSave} disabled={!name.trim()} className="w-full p-3 rounded-xl bg-indigo-600 text-white font-bold disabled:bg-gray-600">Save</button>
+            <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+            <button onClick={handleSave} disabled={!name.trim()} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: !name.trim() ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
         </div>
       </div>
     </div>
@@ -177,8 +205,8 @@ const AddIntakeModal: React.FC<{
           </div>
 
           <div className="flex gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-3 rounded-xl bg-gray-700 text-white font-bold">Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="w-full p-3 rounded-xl bg-indigo-600 text-white font-bold disabled:bg-gray-600">Save</button>
+              <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>
@@ -214,18 +242,397 @@ const AddReadingModal: React.FC<{
           <InputField label="Year Published" value={year} onChange={setYear} placeholder="e.g., 2020" type="number" />
           <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., Fiction, Fantasy" />
           <div className="flex gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-3 rounded-xl bg-gray-700 text-white font-bold">Cancel</button>
-              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="w-full p-3 rounded-xl bg-indigo-600 text-white font-bold disabled:bg-gray-600">Save</button>
+              <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>
     );
 };
 
+const DetailItem: React.FC<{ label: string; value: string | number | undefined }> = ({ label, value }) => {
+  if (!value && value !== 0) return null;
+  return (
+    <p className="text-gray-300">
+      <span className="font-semibold text-gray-400">{label}:</span> {value}
+    </p>
+  );
+};
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledChange, ...props }) => {
-  const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, onShowHistory, activities, onAddNewActivity, onDeleteActivity, intakes, onAddNewIntake, onDeleteIntake, readingObjects, onAddNewReadingObject, onDeleteReadingObject } = props;
-  const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE'>('TIMER');
+const ColorPicker: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}> = ({ label, value, onChange }) => (
+  <div className="flex items-center justify-between">
+    <span className="text-sm">{label}</span>
+    <div className="flex items-center gap-2">
+      <div 
+        className="w-8 h-8 rounded-lg border-2 cursor-pointer"
+        style={{ 
+          backgroundColor: value,
+          borderColor: '#ffffff'
+        }}
+        onClick={() => {
+          const input = document.createElement('input');
+          input.type = 'color';
+          input.value = value;
+          input.onchange = (e) => {
+            const target = e.target as HTMLInputElement;
+            onChange(target.value);
+          };
+          input.click();
+        }}
+      />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-20 px-2 py-1 text-xs rounded border focus:outline-none"
+        placeholder="#000000"
+      />
+    </div>
+  </div>
+);
+
+const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
+
+  return (
+    <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex-1 text-left flex justify-between items-center"
+          aria-expanded={isExpanded}
+        >
+          <div>
+            <p className="font-bold text-white">{log.Object.name}</p>
+            <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold text-indigo-400">{formatDurationMs(durationMs)}</p>
+          </div>
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`Delete this session log for "${log.Object.name}"?`)) {
+              onDelete(log.id);
+            }
+          }}
+          className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+          title="Delete log"
+        >
+          ×
+        </button>
+      </div>
+      {isExpanded && (
+        <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+          <div>
+            <h4 className="font-bold text-gray-200 mb-1">Details</h4>
+            <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+              <DetailItem label="Category" value={log.Object.type} />
+              <DetailItem label="Sub-Activity" value={log.Object.subActivity} />
+              <DetailItem label="Sub-Sub-Activity" value={log.Object.subSubActivity} />
+              <DetailItem label="Info" value={log.Object.info} />
+            </div>
+          </div>
+          
+          {log.Notes.length > 0 && (
+            <div>
+              <h4 className="font-bold text-gray-200 mb-1">Notes ({log.Notes.length})</h4>
+              <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                {log.Notes.map((note) => (
+                    <li key={note.timestamp}>
+                        <p className="text-gray-400 font-mono">{formatDateTime(note.timestamp)}</p>
+                        <p className="text-gray-300 whitespace-pre-wrap">{note.note}</p>
+                    </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {log.TrackerAndMetric.length > 0 && (
+            <div>
+              <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
+              <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                {log.TrackerAndMetric.map((entry, i) => (
+                  <li key={entry.timestamp}>
+                     <p className="text-gray-400 font-semibold">Break {i+1} @ {formatDateTime(entry.timestamp)}</p>
+                     <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+};
+
+const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+  
+    return (
+      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div>
+              <p className="font-bold text-white">{log.intake.name}</p>
+              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-teal-400">{log.quantity} {log.unit}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this intake log for "${log.intake.name}"?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
+        {isExpanded && (
+          <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+            <div>
+              <h4 className="font-bold text-gray-200 mb-1">Details</h4>
+              <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+                <DetailItem label="Type" value={log.intake.type} />
+                <DetailItem label="Info" value={log.intake.info} />
+              </div>
+            </div>
+          </div>
+        )}
+      </li>
+    );
+};
+
+const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
+  
+    return (
+      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div>
+              <p className="font-bold text-white">{log.Object.bookName}</p>
+              <p className="text-sm text-gray-400">{log.Object.author}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-cyan-400">{formatDurationMs(durationMs)}</p>
+              <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this reading log for "${log.Object.bookName}"?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
+        {isExpanded && (
+            <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+            <div>
+                <h4 className="font-bold text-gray-200 mb-1">Details</h4>
+                <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+                    <DetailItem label="Year" value={log.Object.year} />
+                    <DetailItem label="Info" value={log.Object.info} />
+                </div>
+            </div>
+            
+            {log.Notes.length > 0 && (
+              <div>
+                <h4 className="font-bold text-gray-200 mb-1">Notes ({log.Notes.length})</h4>
+                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                  {log.Notes.map((note) => (
+                      <li key={note.timestamp}>
+                          <p className="text-gray-400 font-mono">{formatDateTime(note.timestamp)}</p>
+                          <p className="text-gray-300 whitespace-pre-wrap">{note.note}</p>
+                      </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {log.TrackerAndMetric.length > 0 && (
+              <div>
+                <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
+                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                  {log.TrackerAndMetric.map((entry, i) => (
+                    <li key={entry.timestamp}>
+                       <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
+                       <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </li>
+    );
+};
+
+const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+  
+    return (
+      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+        <div className="flex justify-between items-center p-4">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 text-left flex justify-between items-center"
+            aria-expanded={isExpanded}
+          >
+            <div>
+              <p className="font-bold text-white">{log.title || 'Untitled Note'}</p>
+              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold text-yellow-400">{log.content.length} chars</p>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete this note log?`)) {
+                onDelete(log.id);
+              }
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded"
+            title="Delete log"
+          >
+            ×
+          </button>
+        </div>
+        {isExpanded && (
+          <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+            <div>
+              <h4 className="font-bold text-gray-200 mb-1">Content</h4>
+              <div className="pl-4 border-l-2 border-gray-700">
+                <p className="text-gray-300 whitespace-pre-wrap text-xs">{log.content}</p>
+              </div>
+            </div>
+            
+            {log.TrackerAndMetric.length > 0 && (
+              <div>
+                <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
+                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                  {log.TrackerAndMetric.map((entry, i) => (
+                    <li key={entry.timestamp}>
+                       <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
+                       <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </li>
+    );
+};
+
+const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledChange, userEmail, ...props }) => {
+  const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, activities, onAddNewActivity, onDeleteActivity, intakes, onAddNewIntake, onDeleteIntake, readingObjects, onAddNewReadingObject, onDeleteReadingObject, logs, onDeleteSessionLog, onDeleteIntakeLog, onDeleteReadingLog, onDeleteNoteLog, onLogout } = props;
+  const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE' | 'DATA' | 'SETTINGS'>('TIMER');
+  const [settingsSubMode, setSettingsSubMode] = useState<'USER' | 'APPLICATION_LOOK'>('USER');
+  
+  // Color customization state
+  const [appColors, setAppColors] = useState({
+    background: '#ffffff',
+    surface: '#ffffff',
+    primary: '#4f46e5',
+    text: '#000000',
+    accent: '#10b981',
+    // Button hierarchy system
+    buttonUnselected: {
+      background: '#ffffff',
+      stroke: '#000000',
+      strokeWeight: 1,
+      text: '#000000',
+      fontWeight: 'normal'
+    },
+    buttonSelected: {
+      background: '#b8b8b8',
+      stroke: '#000000',
+      strokeWeight: 2,
+      text: '#000000',
+      fontWeight: 'normal'
+    }
+  });
+
+  // Predefined theme presets
+  const themePresets = {
+    dark: {
+      name: 'Dark',
+      colors: {
+        background: '#000000',
+        surface: '#000000',
+        primary: '#4f46e5',
+        text: '#ffffff',
+        accent: '#10b981',
+        buttonUnselected: {
+          background: '#ffffff',
+          stroke: '#ffffff',
+          strokeWeight: 1,
+          text: '#000000',
+          fontWeight: 'normal'
+        },
+        buttonSelected: {
+          background: '#b8b8b8',
+          stroke: '#ffffff',
+          strokeWeight: 2,
+          text: '#000000',
+          fontWeight: 'normal'
+        }
+      }
+    },
+    light: {
+      name: 'Light',
+      colors: {
+        background: '#ffffff',
+        surface: '#ffffff',
+        primary: '#4f46e5',
+        text: '#000000',
+        accent: '#10b981',
+        buttonUnselected: {
+          background: '#ffffff',
+          stroke: '#000000',
+          strokeWeight: 1,
+          text: '#000000',
+          fontWeight: 'normal'
+        },
+        buttonSelected: {
+          background: '#b8b8b8',
+          stroke: '#000000',
+          strokeWeight: 2,
+          text: '#000000',
+          fontWeight: 'normal'
+        }
+      }
+    }
+  };
   
   // Activity states
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | null>(null);
@@ -377,6 +784,45 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const handleMetricChange = (name: string, value: number) => {
     setTrackerMetrics(prev => prev ? { ...prev, [name]: value } : null);
   };
+
+  // Color customization handlers
+  const handleColorChange = (colorKey: keyof typeof appColors, value: string) => {
+    setAppColors(prev => ({ ...prev, [colorKey]: value }));
+  };
+
+  const handleThemePreset = (presetKey: keyof typeof themePresets) => {
+    const preset = themePresets[presetKey];
+    setAppColors(preset.colors);
+  };
+
+  // Hierarchical button styling system
+  const getButtonStyle = (isActive: boolean = false, isDisabled: boolean = false) => {
+    if (isDisabled) {
+      return {
+        backgroundColor: appColors.surface,
+        color: appColors.text,
+        borderColor: appColors.text,
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        fontWeight: 'normal'
+      };
+    }
+    
+    const buttonConfig = isActive ? appColors.buttonSelected : appColors.buttonUnselected;
+    return {
+      backgroundColor: buttonConfig.background,
+      color: buttonConfig.text,
+      borderColor: buttonConfig.stroke,
+      borderWidth: `${buttonConfig.strokeWeight}px`,
+      borderStyle: 'solid',
+      fontWeight: buttonConfig.fontWeight
+    };
+  };
+
+  const getContainerStyle = () => ({
+    backgroundColor: appColors.surface,
+    borderColor: appColors.text
+  });
   
   const isRecordInvalid = !selectedActivity || !startTime || !endTime || new Date(startTime) >= new Date(endTime);
   const isReadingInvalid = !selectedReadingObject || !startTime || !endTime || new Date(startTime) >= new Date(endTime);
@@ -487,7 +933,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       <div className="p-4 space-y-3">
           {renderSectionHeader('Trackers (Optional)')}
           <div className="grid grid-cols-3 gap-2">
-            {TRACKERS.map(tracker => ( <button key={tracker.id} onClick={() => handleTrackerSelect(tracker.id)} className={`p-3 rounded-lg text-sm transition-colors text-center ${selectedTrackerId === tracker.id ? 'bg-indigo-600' : 'bg-gray-800'}`}>{tracker.name}</button>))}
+            {TRACKERS.map(tracker => ( 
+              <button 
+                key={tracker.id} 
+                onClick={() => handleTrackerSelect(tracker.id)} 
+                className="p-3 rounded-lg text-sm transition-colors text-center border"
+                style={getButtonStyle(selectedTrackerId === tracker.id)}
+              >
+                {tracker.name}
+              </button>
+            ))}
           </div>
       </div>
       {selectedTrackerId && trackerMetrics && (
@@ -520,23 +975,83 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   );
 
   return (
-    <div className="flex flex-col h-full bg-black text-white relative">
-      <header className="p-4 border-b border-gray-800 text-center relative flex items-center justify-center sticky top-0 bg-black z-10">
-        <h1 className="text-xl font-bold">Sterodoro</h1>
-        <button onClick={onShowHistory} className="absolute right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 transition-colors" aria-label="Session History">
-          <HistoryIcon className="w-6 h-6" />
-        </button>
+    <div 
+      className="flex flex-col h-full relative"
+      style={{ 
+        backgroundColor: appColors.background,
+        color: appColors.text
+      }}
+    >
+      <header 
+        className="p-4 border-b text-center relative flex items-center justify-center sticky top-0 z-10"
+        style={{ 
+          backgroundColor: appColors.background,
+          borderColor: appColors.surface
+        }}
+      >
+        <h1 className="text-xl font-bold" style={{ color: appColors.text }}>Sterodoro</h1>
       </header>
       
       <main className="flex-grow overflow-y-auto">
-        <div className="divide-y divide-gray-800">
-          <div className="p-4 space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => setMode('TIMER')} className={`p-3 rounded-lg font-bold transition-colors ${mode === 'TIMER' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Timer</button>
-                  <button onClick={() => setMode('RECORD')} className={`p-3 rounded-lg font-bold transition-colors ${mode === 'RECORD' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Record</button>
-                  <button onClick={() => setMode('INTAKE')} className={`p-3 rounded-lg font-bold transition-colors ${mode === 'INTAKE' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Intake</button>
-                  <button onClick={() => setMode('READING')} className={`p-3 rounded-lg font-bold transition-colors ${mode === 'READING' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Reading</button>
-                  <button onClick={() => setMode('NOTE')} className={`p-3 rounded-lg font-bold transition-colors ${mode === 'NOTE' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Note</button>
+        <div 
+          className="divide-y"
+          style={{ borderColor: appColors.surface }}
+        >
+          <div className="p-4 space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                  <button 
+                    onClick={() => setMode('TIMER')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'TIMER')}
+                  >
+                    Timer
+                  </button>
+                  <button 
+                    onClick={() => setMode('RECORD')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'RECORD')}
+                  >
+                    Record
+                  </button>
+                  <button 
+                    onClick={() => setMode('INTAKE')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'INTAKE')}
+                  >
+                    Intake
+                  </button>
+                  <button 
+                    onClick={() => setMode('READING')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'READING')}
+                  >
+                    Reading
+                  </button>
+                  <button 
+                    onClick={() => setMode('NOTE')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'NOTE')}
+                  >
+                    Note
+                  </button>
+                  <div className="p-4 rounded-lg bg-transparent"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                  <button 
+                    onClick={() => setMode('DATA')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'DATA')}
+                  >
+                    Data
+                  </button>
+                  <button 
+                    onClick={() => setMode('SETTINGS')} 
+                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    style={getButtonStyle(mode === 'SETTINGS')}
+                  >
+                    Settings
+                  </button>
+                  <div className="p-4 rounded-lg bg-transparent"></div>
               </div>
           </div>
           
@@ -547,7 +1062,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                 {intakes.length === 0 ? (
                     <div className="text-center py-8">
                         <p className="text-gray-400 mb-4">No intake items yet</p>
-                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
                             Create Your First Intake Item
                         </button>
                     </div>
@@ -559,7 +1074,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                     <div key={intake.id} className="relative group">
                                         <button 
                                             onClick={() => handleToggleIntake(intake.id)} 
-                                            className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${isSelected ? 'bg-indigo-600 ring-2 ring-indigo-400' : 'bg-gray-800'}`}
+                                            className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
+                                            style={getButtonStyle(isSelected)}
                                         >
                                             {intake.name}
                                         </button>
@@ -577,7 +1093,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                     </div>
                                 )
                             })}
-                            <button onClick={() => setIsAddingIntake(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Add New...</button>
+                            <button onClick={() => setIsAddingIntake(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Add New...</button>
                         </div>
                 )}
               </div>
@@ -594,7 +1110,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   {readingObjects.length === 0 ? (
                       <div className="text-center py-8">
                           <p className="text-gray-400 mb-4">No books yet</p>
-                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
                               Add Your First Book
                           </button>
                       </div>
@@ -604,7 +1120,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               <div key={book.id} className="relative group">
                                   <button 
                                       onClick={() => setSelectedReadingObject(book)} 
-                                      className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedReadingObject?.id === book.id ? 'bg-indigo-600' : 'bg-gray-800'}`}
+                                      className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
+                                      style={getButtonStyle(selectedReadingObject?.id === book.id)}
                                   >
                                       {book.bookName}
                                   </button>
@@ -621,7 +1138,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   </button>
                               </div>
                           ))}
-                          <button onClick={() => setIsAddingReadingObject(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
+                          <button onClick={() => setIsAddingReadingObject(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Other...</button>
                       </div>
                   )}
               </div>
@@ -655,7 +1172,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                 {acts.map(activity => {
                                     const isSelected = noteRelatedActivityIds.includes(activity.id);
                                     return (
-                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className={`p-3 rounded-lg text-sm transition-colors text-center truncate ${isSelected ? 'bg-indigo-600' : 'bg-gray-800'}`}>{activity.name}</button>
+                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className="p-3 rounded-lg text-sm transition-colors text-center truncate border" style={getButtonStyle(isSelected)}>{activity.name}</button>
                                     );
                                 })}
                             </div>
@@ -667,10 +1184,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             </>
           ) : (
             <>
+              {(mode === 'TIMER' || mode === 'RECORD') && (
+            <>
               <div className="p-4 space-y-3">
                 {renderSectionHeader('Activity Type')}
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.values(ActivityCategory).map(cat => ( <button key={cat} onClick={() => { setSelectedCategory(cat); setSelectedActivity(null); }} className={`p-3 rounded-lg text-sm transition-colors text-center ${selectedCategory === cat ? 'bg-indigo-600' : 'bg-gray-800'}`}>{cat}</button>))}
+                      {Object.values(ActivityCategory).map(cat => ( 
+                        <button 
+                          key={cat} 
+                          onClick={() => { setSelectedCategory(cat); setSelectedActivity(null); }} 
+                          className="p-3 rounded-lg text-sm transition-colors text-center border"
+                          style={getButtonStyle(selectedCategory === cat)}
+                        >
+                          {cat}
+                        </button>
+                      ))}
                 </div>
               </div>
               {selectedCategory && (
@@ -679,7 +1207,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                       {filteredActivities.length === 0 ? (
                           <div className="text-center py-8">
                               <p className="text-gray-400 mb-4">No activities yet for {selectedCategory}</p>
-                              <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">
+                                  <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
                                   Create Your First Activity
                               </button>
                           </div>
@@ -689,7 +1217,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                 <div key={act.id} className="relative group">
                                   <button 
                                     onClick={() => setSelectedActivity(act)} 
-                                    className={`w-full p-3 rounded-lg text-sm transition-colors text-center truncate ${selectedActivity?.id === act.id ? 'bg-indigo-600' : 'bg-gray-800'}`}
+                                        className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
+                                        style={getButtonStyle(selectedActivity?.id === act.id)}
                                   >
                                     {act.name}
                                   </button>
@@ -706,26 +1235,28 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   </button>
                                 </div>
                               ))}
-                              <button onClick={() => setIsAddingActivity(true)} className="p-3 rounded-lg text-sm transition-colors bg-gray-800 text-center">Other...</button>
+                                  <button onClick={() => setIsAddingActivity(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Other...</button>
                           </div>
                       )}
                   </div>
+                  )}
+                </>
               )}
               {selectedActivity && mode === 'TIMER' && (
                 <>
                   <div className="p-4 space-y-3">
                       {renderSectionHeader('Timer Settings')}
                       <div className="grid grid-cols-3 gap-2">
-                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 ${activeSlider === 'session' ? 'bg-indigo-600' : 'bg-gray-800'}`}>
-                              <span className="text-sm text-gray-300 block">Session</span>
+                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'session')}>
+                              <span className="text-sm block">Session</span>
                               <span className="font-bold text-lg">{formatDuration(sessionDuration)}</span>
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 ${activeSlider === 'break' ? 'bg-indigo-600' : 'bg-gray-800'}`}>
-                              <span className="text-sm text-gray-300 block">Break</span>
+                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'break')}>
+                              <span className="text-sm block">Break</span>
                               <span className="font-bold text-lg">{formatDuration(breakDuration)}</span>
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className={`p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 ${activeSlider === 'count' ? 'bg-indigo-600' : 'bg-gray-800'}`}>
-                              <span className="text-sm text-gray-300 block">Sessions</span>
+                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'count')}>
+                              <span className="text-sm block">Sessions</span>
                               <span className="font-bold text-lg">{sessionCount}</span>
                           </button>
                       </div>
@@ -736,19 +1267,29 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   <div className="p-4 space-y-3">
                     {renderSectionHeader('Trackers')}
                     <div className="grid grid-cols-3 gap-2">
-                      {allTrackers.map(tracker => ( <button key={tracker.id} onClick={() => handleTrackerSelect(tracker.id)} className={`p-3 rounded-lg text-sm transition-colors text-center ${selectedTrackerId === tracker.id ? 'bg-indigo-600' : 'bg-gray-800'}`}>{tracker.name}</button>))}
+                      {allTrackers.map(tracker => ( 
+                        <button 
+                          key={tracker.id} 
+                          onClick={() => handleTrackerSelect(tracker.id)} 
+                          className="p-3 rounded-lg text-sm transition-colors text-center border"
+                          style={getButtonStyle(selectedTrackerId === tracker.id)}
+                        >
+                          {tracker.name}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   {selectedTrackerId && (<div className="p-4 space-y-3">
                       {renderSectionHeader('Frequency')}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button onClick={() => setTrackerFrequency('every_break')} className={`p-3 rounded-lg text-sm transition-colors text-center ${trackerFrequency === 'every_break' ? 'bg-indigo-600' : 'bg-gray-800'}`}>Every Break</button>
-                        <button onClick={() => setTrackerFrequency('end_of_session')} className={`p-3 rounded-lg text-sm transition-colors text-center ${trackerFrequency === 'end_of_session' ? 'bg-indigo-600' : 'bg-gray-800'}`}>End of Session</button>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button onClick={() => setTrackerFrequency('every_break')} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(trackerFrequency === 'every_break')}>Every Break</button>
+                        <button onClick={() => setTrackerFrequency('end_of_session')} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(trackerFrequency === 'end_of_session')}>End of Session</button>
+                        <div className="p-3 rounded-lg text-sm text-center border opacity-50" style={getContainerStyle()}>-</div>
                       </div>
                   </div>)}
                   <div className="p-4 space-y-3">
                       {renderSectionHeader('Sound Notifications')}
-                      <div className="bg-gray-800 p-3 rounded-lg">
+                      <div className="p-3 rounded-lg border" style={getContainerStyle()}>
                           <div className="flex items-center justify-between">
                               <div>
                                   <p className="text-white font-medium">Session & Break Sounds</p>
@@ -763,14 +1304,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                           }
                                       }}
                                       disabled={!soundEnabled}
-                                      className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-600'}`}
+                                      className="p-2 rounded-lg transition-colors border"
+                                      style={getButtonStyle(false, !soundEnabled)}
                                       title="Test sound"
                                   >
                                       🔊
                                   </button>
                                   <button
                                       onClick={() => onSoundEnabledChange(!soundEnabled)}
-                                      className={`px-3 py-1 rounded text-sm transition-colors ${soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'}`}
+                                      className="px-3 py-1 rounded text-sm transition-colors border"
+                                      style={getButtonStyle(soundEnabled)}
                                   >
                                       {soundEnabled ? '✓ Enabled' : '✗ Disabled'}
                                   </button>
@@ -792,14 +1335,385 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                     {renderTrackerAndNotes()}
                   </>
               )}
+              {mode === 'DATA' && (
+                <>
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      {renderSectionHeader('Data Management')}
+                      <button 
+                        onClick={() => {
+                          if (logs.length === 0) return;
+
+                          try {
+                            const jsonString = JSON.stringify(logs, null, 2);
+                            const blob = new Blob([jsonString], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            const date = new Date().toISOString().split('T')[0];
+                            link.href = url;
+                            link.download = `sterodoro-logs_${date}.json`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          } catch (error) {
+                            console.error("Failed to export logs:", error);
+                            alert("Could not export logs. See console for details.");
+                          }
+                        }}
+                        className="px-4 py-2 rounded-lg font-medium transition-colors border"
+                        style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}
+                      >
+                        Download All Data
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4 overflow-y-auto max-h-[60vh]">
+                      {logs.length === 0 ? (
+                        <div className="text-center text-gray-400 mt-20 flex flex-col items-center h-full justify-center">
+                          <p className="text-lg">No saved logs yet.</p>
+                          <p className="text-sm">Complete a session or log an intake to see it here.</p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {logs.map((log) => {
+                            if ('intake' in log) {
+                              return <IntakeLogItem key={log.id} log={log as IntakeLog} onDelete={onDeleteIntakeLog} />;
+                            }
+                            if ('Object' in log && 'bookName' in (log as ReadingLog).Object) {
+                              return <ReadingLogItem key={log.id} log={log as ReadingLog} onDelete={onDeleteReadingLog} />;
+                            }
+                            if ('TimeStart' in log) {
+                              return <SessionLogItem key={log.id} log={log as SessionLog} onDelete={onDeleteSessionLog} />;
+                            }
+                            if ('content' in log) {
+                              return <NoteLogItem key={log.id} log={log as NoteLog} onDelete={onDeleteNoteLog} />;
+                            }
+                            return null;
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+            </>
+          )}
+              {mode === 'SETTINGS' && (
+                <>
+                  <div className="p-4 space-y-3">
+                    {renderSectionHeader('Settings')}
+                    
+                    {/* Settings Sub-Navigation */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <button 
+                        onClick={() => setSettingsSubMode('USER')} 
+                        className="p-3 rounded-lg font-medium transition-colors text-sm border"
+                        style={getButtonStyle(settingsSubMode === 'USER')}
+                      >
+                        User
+                      </button>
+                      <button 
+                        onClick={() => setSettingsSubMode('APPLICATION_LOOK')} 
+                        className="p-3 rounded-lg font-medium transition-colors text-sm border"
+                        style={getButtonStyle(settingsSubMode === 'APPLICATION_LOOK')}
+                      >
+                        Application Look
+                      </button>
+                    </div>
+
+                    {/* User Settings Section */}
+                    {settingsSubMode === 'USER' && (
+                      <div className="p-4 rounded-lg space-y-4 border" style={getContainerStyle()}>
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-2">User Information</h3>
+                          <div className="space-y-2">
+                            <DetailItem label="Email" value={userEmail} />
+                            <DetailItem label="User ID" value={userEmail?.split('@')[0]} />
+                          </div>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-2">Account Actions</h3>
+                          <button 
+                            onClick={onLogout}
+                            className="w-full px-4 py-3 rounded-lg font-medium transition-colors border"
+                            style={{ backgroundColor: '#dc2626', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}
+                          >
+                            Logout
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Application Look Settings Section */}
+                    {settingsSubMode === 'APPLICATION_LOOK' && (
+                      <div className="p-4 rounded-lg space-y-6 border" style={getContainerStyle()}>
+                        {/* Theme Presets */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-white mb-3">Theme</h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            {Object.entries(themePresets).map(([key, preset]) => (
+                              <button
+                                key={key}
+                                onClick={() => handleThemePreset(key as keyof typeof themePresets)}
+                                className="p-4 rounded-lg border-2 transition-colors text-center"
+                                style={{
+                                  backgroundColor: preset.colors.surface,
+                                  color: preset.colors.text,
+                                  borderColor: preset.colors.primary
+                                }}
+                              >
+                                <div className="text-base font-medium">{preset.name}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Color Customization */}
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-3">Custom Colors</h3>
+                          <div className="space-y-4">
+                            <ColorPicker 
+                              label="Background" 
+                              value={appColors.background} 
+                              onChange={(value) => handleColorChange('background', value)} 
+                            />
+                            <ColorPicker 
+                              label="Surface" 
+                              value={appColors.surface} 
+                              onChange={(value) => handleColorChange('surface', value)} 
+                            />
+                            <ColorPicker 
+                              label="Primary" 
+                              value={appColors.primary} 
+                              onChange={(value) => handleColorChange('primary', value)} 
+                            />
+                            <ColorPicker 
+                              label="Text" 
+                              value={appColors.text} 
+                              onChange={(value) => handleColorChange('text', value)} 
+                            />
+                            <ColorPicker 
+                              label="Accent" 
+                              value={appColors.accent} 
+                              onChange={(value) => handleColorChange('accent', value)} 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Button Styling */}
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-3">Button Styling</h3>
+                          
+                          {/* Unselected Buttons */}
+                          <div className="mb-6">
+                            <h4 className="text-md font-medium text-white mb-3">Unselected Buttons</h4>
+                            <div className="space-y-3">
+                              <ColorPicker 
+                                label="Background" 
+                                value={appColors.buttonUnselected.background} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonUnselected: { ...prev.buttonUnselected, background: value }
+                                }))} 
+                              />
+                              <ColorPicker 
+                                label="Stroke Color" 
+                                value={appColors.buttonUnselected.stroke} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonUnselected: { ...prev.buttonUnselected, stroke: value }
+                                }))} 
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white">Stroke Weight</span>
+                                <input
+                                  type="range"
+                                  min="1"
+                                  max="5"
+                                  value={appColors.buttonUnselected.strokeWeight}
+                                  onChange={(e) => setAppColors(prev => ({ 
+                                    ...prev, 
+                                    buttonUnselected: { ...prev.buttonUnselected, strokeWeight: parseInt(e.target.value) }
+                                  }))}
+                                  className="w-20"
+                                />
+                                <span className="text-sm text-white w-8">{appColors.buttonUnselected.strokeWeight}px</span>
+                              </div>
+                              <ColorPicker 
+                                label="Text Color" 
+                                value={appColors.buttonUnselected.text} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonUnselected: { ...prev.buttonUnselected, text: value }
+                                }))} 
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white">Font Weight</span>
+                                <select
+                                  value={appColors.buttonUnselected.fontWeight}
+                                  onChange={(e) => setAppColors(prev => ({ 
+                                    ...prev, 
+                                    buttonUnselected: { ...prev.buttonUnselected, fontWeight: e.target.value }
+                                  }))}
+                                  className="px-2 py-1 bg-gray-700 text-white text-xs rounded border border-gray-600"
+                                >
+                                  <option value="normal">Normal</option>
+                                  <option value="bold">Bold</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Selected Buttons */}
+                          <div>
+                            <h4 className="text-md font-medium text-white mb-3">Selected Buttons</h4>
+                            <div className="space-y-3">
+                              <ColorPicker 
+                                label="Background" 
+                                value={appColors.buttonSelected.background} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonSelected: { ...prev.buttonSelected, background: value }
+                                }))} 
+                              />
+                              <ColorPicker 
+                                label="Stroke Color" 
+                                value={appColors.buttonSelected.stroke} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonSelected: { ...prev.buttonSelected, stroke: value }
+                                }))} 
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white">Stroke Weight</span>
+                                <input
+                                  type="range"
+                                  min="1"
+                                  max="5"
+                                  value={appColors.buttonSelected.strokeWeight}
+                                  onChange={(e) => setAppColors(prev => ({ 
+                                    ...prev, 
+                                    buttonSelected: { ...prev.buttonSelected, strokeWeight: parseInt(e.target.value) }
+                                  }))}
+                                  className="w-20"
+                                />
+                                <span className="text-sm text-white w-8">{appColors.buttonSelected.strokeWeight}px</span>
+                              </div>
+                              <ColorPicker 
+                                label="Text Color" 
+                                value={appColors.buttonSelected.text} 
+                                onChange={(value) => setAppColors(prev => ({ 
+                                  ...prev, 
+                                  buttonSelected: { ...prev.buttonSelected, text: value }
+                                }))} 
+                              />
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white">Font Weight</span>
+                                <select
+                                  value={appColors.buttonSelected.fontWeight}
+                                  onChange={(e) => setAppColors(prev => ({ 
+                                    ...prev, 
+                                    buttonSelected: { ...prev.buttonSelected, fontWeight: e.target.value }
+                                  }))}
+                                  className="px-2 py-1 bg-gray-700 text-white text-xs rounded border border-gray-600"
+                                >
+                                  <option value="normal">Normal</option>
+                                  <option value="bold">Bold</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Live Preview */}
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-3">Live Preview</h3>
+                          <div 
+                            className="p-4 rounded-lg border-2 border-gray-600"
+                            style={{ backgroundColor: appColors.background }}
+                          >
+                            <div className="space-y-4">
+                              <div 
+                                className="p-3 rounded-lg"
+                                style={{ backgroundColor: appColors.surface }}
+                              >
+                                <h4 style={{ color: appColors.text }} className="font-semibold mb-3">Button Hierarchy</h4>
+                                <div className="space-y-2">
+                                  <button 
+                                    className="px-4 py-2 rounded-lg transition-colors"
+                                    style={getButtonStyle(false)}
+                                  >
+                                    Unselected Button
+                                  </button>
+                                  <button 
+                                    className="px-4 py-2 rounded-lg transition-colors"
+                                    style={getButtonStyle(true)}
+                                  >
+                                    Selected Button
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span style={{ color: appColors.text }} className="text-sm">Accent color:</span>
+                                <div 
+                                  className="w-6 h-6 rounded"
+                                  style={{ backgroundColor: appColors.accent }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Sound Settings */}
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-2">Sound Settings</h3>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-300">Timer Sound</span>
+                            <button 
+                              onClick={() => onSoundEnabledChange(!soundEnabled)}
+                              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                soundEnabled 
+                                  ? 'bg-green-600 text-white hover:bg-green-700' 
+                                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                              }`}
+                            >
+                              {soundEnabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* App Information */}
+                        <div className="pt-4 border-t border-gray-700">
+                          <h3 className="text-lg font-semibold text-white mb-2">App Information</h3>
+                          <div className="space-y-2 text-sm text-gray-400">
+                            <p>Version: 1.0.0</p>
+                            <p>Sterodoro - Productivity Timer</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
 
         </div>
       </main>
 
-      <footer className="p-4 border-t border-gray-800 sticky bottom-0 bg-black">
-        <button onClick={handleAction} disabled={actionButtonDisabled} className="w-full p-4 rounded-xl bg-indigo-600 text-white font-bold text-lg transition-colors hover:bg-indigo-700 disabled:bg-gray-700 disabled:cursor-not-allowed">
+      <footer 
+        className="p-4 border-t sticky bottom-0"
+        style={{ 
+          backgroundColor: appColors.background,
+          borderColor: appColors.surface
+        }}
+      >
+        <button 
+          onClick={handleAction} 
+          disabled={actionButtonDisabled} 
+          className="w-full p-4 rounded-xl font-bold text-lg transition-colors disabled:cursor-not-allowed border"
+          style={getButtonStyle(false, actionButtonDisabled)}
+        >
             {actionButtonText}
         </button>
       </footer>

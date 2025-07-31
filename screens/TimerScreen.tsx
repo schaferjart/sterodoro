@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { SessionConfig } from '../types';
 import { NoteIcon, TrackIcon, HomeIcon, ChevronLeftIcon } from '../components/Icons';
 import { pushNotificationManager } from '../lib/push-notifications';
+import UserID from '../components/UserID';
 
 interface TimerScreenProps {
   config: SessionConfig;
@@ -20,6 +21,7 @@ interface TimerScreenProps {
   onAddNote: (note: string) => void;
   notesCount: number;
   soundEnabled: boolean;
+  userEmail?: string;
 }
 
 const formatTime = (seconds: number): string => {
@@ -29,7 +31,7 @@ const formatTime = (seconds: number): string => {
 };
 
 const TimerScreen: React.FC<TimerScreenProps> = ({
-  config, timerState, setTimerState, onBreakStart, onSessionStart, onTimerEnd, onGoHome, onAddNote, notesCount, soundEnabled
+  config, timerState, setTimerState, onBreakStart, onSessionStart, onTimerEnd, onGoHome, onAddNote, notesCount, soundEnabled, userEmail
 }) => {
   const { isBreak, currentSession, timeRemaining, madeTime } = timerState;
   const { sessionDuration, breakDuration, sessionCount } = config.timerSettings;
@@ -345,18 +347,18 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
 
       <main className="flex-grow flex flex-col items-center justify-center p-4">
         {isBreak ? (
-          <div className="w-full space-y-4 flex flex-col items-center">
-             <div className="relative w-full h-4 bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full space-y-6 flex flex-col items-center">
+             <div className="relative w-full h-6 bg-gray-700 rounded-full overflow-hidden">
                 <div 
-                    className="absolute h-4 bg-green-500 rounded-l-full rounded-r-full"
+                    className="absolute h-6 bg-green-500 rounded-l-full rounded-r-full"
                     style={{ width: `${progress}%`, transition: 'width 1s linear'}}
                 ></div>
              </div>
-             <p className="text-6xl font-mono text-center pt-4">{formatTime(timeRemaining)}</p>
+             <p className="text-5xl sm:text-6xl font-mono text-center pt-4">{formatTime(timeRemaining)}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center w-full">
-            <p className="text-6xl font-mono">{formatTime(timeRemaining)}</p>
+            <p className="text-5xl sm:text-6xl font-mono">{formatTime(timeRemaining)}</p>
             <p className="text-gray-400 text-sm mb-6">{formatTime(madeTime)} / {formatTime(totalDuration)}</p>
             
             <div className="w-full max-w-xs flex flex-wrap gap-1.5 justify-center">
@@ -391,32 +393,32 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
       </main>
 
       <footer className="p-4 border-t border-gray-800">
-        <div className="flex justify-around items-center p-2 bg-gray-900 rounded-xl">
-          <button onClick={() => setIsNoteTaking(true)} className="relative flex flex-col items-center text-gray-400 hover:text-white transition-colors">
+        <div className="flex justify-around items-center p-3 bg-gray-900 rounded-xl">
+          <button onClick={() => setIsNoteTaking(true)} className="relative flex flex-col items-center text-gray-400 hover:text-white transition-colors p-2">
             {notesCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
                     {notesCount}
                 </span>
             )}
-            <NoteIcon className="w-7 h-7" />
+            <NoteIcon className="w-8 h-8" />
             <span className="text-xs mt-1">Note</span>
           </button>
-          <button onClick={onBreakStart} className="flex flex-col items-center text-gray-400 hover:text-white transition-colors disabled:opacity-50" disabled={isBreak || !config.trackerSettings.selectedTrackerId}>
-            <TrackIcon className="w-7 h-7" />
+          <button onClick={onBreakStart} className="flex flex-col items-center text-gray-400 hover:text-white transition-colors disabled:opacity-50 p-2" disabled={isBreak || !config.trackerSettings.selectedTrackerId}>
+            <TrackIcon className="w-8 h-8" />
             <span className="text-xs mt-1">Track</span>
           </button>
           {!timerState.isActive && (
             <button 
               onClick={playNotificationSound} 
               disabled={!soundEnabled}
-              className={`flex flex-col items-center transition-colors ${soundEnabled ? 'text-gray-400 hover:text-white' : 'text-gray-600'}`}
+              className={`flex flex-col items-center transition-colors p-2 ${soundEnabled ? 'text-gray-400 hover:text-white' : 'text-gray-600'}`}
             >
               <span className="text-2xl">🔊</span>
               <span className="text-xs mt-1">Test</span>
             </button>
           )}
-          <button onClick={onGoHome} className="flex flex-col items-center text-gray-400 hover:text-white transition-colors">
-            <HomeIcon className="w-7 h-7" />
+          <button onClick={onGoHome} className="flex flex-col items-center text-gray-400 hover:text-white transition-colors p-2">
+            <HomeIcon className="w-8 h-8" />
             <span className="text-xs mt-1">Home</span>
           </button>
         </div>

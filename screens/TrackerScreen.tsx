@@ -5,6 +5,7 @@ import { SessionConfig, PerformanceUpdate, ActivityObject, ActivityCategory } fr
 import { TRACKERS } from '../constants';
 import Slider from '../components/Slider';
 import { ChevronDownIcon } from '../components/Icons';
+import UserID from '../components/UserID';
 
 
 const ChangeActivityModal: React.FC<{
@@ -69,9 +70,10 @@ interface TrackerScreenProps {
   onSave: (update: PerformanceUpdate, newActivity?: ActivityObject) => void;
   activities: ActivityObject[];
   isFinalTracking: boolean;
+  userEmail?: string;
 }
 
-const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activities, isFinalTracking }) => {
+const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activities, isFinalTracking, userEmail }) => {
   const trackerMetrics = useMemo(() => {
     if (!config.trackerSettings.selectedTrackerId) return [];
     const tracker = TRACKERS.find(t => t.id === config.trackerSettings.selectedTrackerId);

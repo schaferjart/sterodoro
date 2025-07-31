@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
 import { ChevronLeftIcon } from '../components/Icons';
+import UserID from '../components/UserID';
 
 interface NotePromptScreenProps {
   onSave: (note: string) => void;
   onCancel: () => void;
   isFinalNote: boolean;
+  userEmail?: string;
 }
 
-const NotePromptScreen: React.FC<NotePromptScreenProps> = ({ onSave, onCancel, isFinalNote }) => {
+const NotePromptScreen: React.FC<NotePromptScreenProps> = ({ onSave, onCancel, isFinalNote, userEmail }) => {
   const [noteText, setNoteText] = useState('');
 
   const handleSave = () => {

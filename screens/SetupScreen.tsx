@@ -989,7 +989,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           borderColor: appColors.surface
         }}
       >
-        <h1 className="text-xl font-bold" style={{ color: appColors.text }}>Sterodoro</h1>
+        {/* Header content removed */}
       </header>
       
       <main className="flex-grow overflow-y-auto">
@@ -997,56 +997,56 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           className="divide-y"
           style={{ borderColor: appColors.surface }}
         >
-          <div className="p-4 space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+          <div className="p-2 sm:p-4 space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <button 
                     onClick={() => setMode('TIMER')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'TIMER')}
                   >
                     Timer
                   </button>
                   <button 
                     onClick={() => setMode('RECORD')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'RECORD')}
                   >
                     Record
                   </button>
                   <button 
                     onClick={() => setMode('INTAKE')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'INTAKE')}
                   >
                     Intake
                   </button>
                   <button 
                     onClick={() => setMode('READING')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'READING')}
                   >
                     Reading
                   </button>
                   <button 
                     onClick={() => setMode('NOTE')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'NOTE')}
                   >
                     Note
                   </button>
                   <div className="p-4 rounded-lg bg-transparent"></div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <button 
                     onClick={() => setMode('DATA')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'DATA')}
                   >
                     Data
                   </button>
                   <button 
                     onClick={() => setMode('SETTINGS')} 
-                    className="p-4 rounded-lg font-bold transition-colors text-sm sm:text-base border"
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
                     style={getButtonStyle(mode === 'SETTINGS')}
                   >
                     Settings
@@ -1351,7 +1351,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                             const link = document.createElement('a');
                             const date = new Date().toISOString().split('T')[0];
                             link.href = url;
-                            link.download = `sterodoro-logs_${date}.json`;
+                            link.download = `productivity-logs_${date}.json`;
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
@@ -1687,7 +1687,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           <h3 className="text-lg font-semibold text-white mb-2">App Information</h3>
                           <div className="space-y-2 text-sm text-gray-400">
                             <p>Version: 1.0.0</p>
-                            <p>Sterodoro - Productivity Timer</p>
+                            <p>Productivity Timer</p>
                           </div>
                         </div>
                       </div>
@@ -1702,7 +1702,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       </main>
 
       <footer 
-        className="p-4 border-t sticky bottom-0"
+        className="p-2 sm:p-4 border-t sticky bottom-0"
         style={{ 
           backgroundColor: appColors.background,
           borderColor: appColors.surface
@@ -1711,7 +1711,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         <button 
           onClick={handleAction} 
           disabled={actionButtonDisabled} 
-          className="w-full p-4 rounded-xl font-bold text-lg transition-colors disabled:cursor-not-allowed border"
+          className="w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-colors disabled:cursor-not-allowed border min-h-[44px]"
           style={getButtonStyle(false, actionButtonDisabled)}
         >
             {actionButtonText}

@@ -20,6 +20,7 @@ import NotificationPermission from './components/NotificationPermission';
 import PushNotificationManager from './components/PushNotificationManager';
 import SoundTest from './components/SoundTest';
 import IOSNotificationHelper from './components/IOSNotificationHelper';
+import PushNotificationDebug from './components/PushNotificationDebug';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initializeErrorReporting } from './lib/error-reporting';
 import { validateEnvironment } from './lib/env-validation';
@@ -976,6 +977,7 @@ const App: React.FC = () => {
             <OfflineStorageTest />
             <SyncQueueViewer />
             <PushNotificationManager />
+            <PushNotificationDebug />
           </div>
         )}
         

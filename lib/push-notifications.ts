@@ -2,8 +2,8 @@
 import { supabase } from './supabase';
 
 // VAPID keys for push notification authentication
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY'; // Replace with actual VAPID key
-const VAPID_PRIVATE_KEY = 'YOUR_VAPID_PRIVATE_KEY'; // Server-side only
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'YOUR_VAPID_PUBLIC_KEY';
+const VAPID_PRIVATE_KEY = import.meta.env.VITE_VAPID_PRIVATE_KEY || 'YOUR_VAPID_PRIVATE_KEY'; // Server-side only
 
 // Use the built-in PushSubscription interface
 type PushSubscriptionData = {
@@ -71,9 +71,17 @@ class PushNotificationManager {
       }
 
       console.log('🔔 Subscribing to push notifications...');
+      console.log('VAPID Public Key:', VAPID_PUBLIC_KEY);
+
+      // Check if VAPID key is still placeholder
+      if (VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY') {
+        console.error('❌ VAPID key is still placeholder. Please set VITE_VAPID_PUBLIC_KEY in .env.local');
+        return false;
+      }
 
       // Convert VAPID key to Uint8Array
       const vapidPublicKey = this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      console.log('VAPID key converted to Uint8Array:', vapidPublicKey.length, 'bytes');
 
       // Subscribe to push notifications
       this.subscription = await this.registration.pushManager.subscribe({
@@ -82,13 +90,23 @@ class PushNotificationManager {
       });
 
       console.log('✅ Push subscription created:', this.subscription);
+      console.log('Subscription endpoint:', this.subscription.endpoint);
 
-      // Store subscription in Supabase
-      await this.storeSubscription(this.subscription as PushSubscription);
+      // Store subscription in Supabase (optional for testing)
+      try {
+        await this.storeSubscription(this.subscription as PushSubscription);
+      } catch (error) {
+        console.warn('⚠️ Failed to store subscription in database (this is okay for testing):', error);
+      }
 
       return true;
     } catch (error) {
       console.error('❌ Failed to subscribe to push notifications:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return false;
     }
   }
@@ -143,33 +161,40 @@ class PushNotificationManager {
       const auth = await this.subscription.getKey('auth');
 
       // Send timer data to server for scheduling
-      const { data, error } = await supabase
-        .from('timer_notifications')
-        .insert({
-          user_id: user.id,
-          subscription_endpoint: this.subscription.endpoint,
-          subscription_keys: {
-            p256dh: p256dh ? btoa(String.fromCharCode(...new Uint8Array(p256dh))) : null,
-            auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
-          },
-          timer_data: {
-            type: 'TIMER_END',
-            isBreak: timerData.isBreak,
-            currentSession: timerData.currentSession,
-            sessionCount: timerData.sessionCount,
-            endTime: timerData.endTime.toISOString()
-          },
-          scheduled_for: timerData.endTime.toISOString(),
-          status: 'pending'
-        });
+      try {
+        const { data, error } = await supabase
+          .from('timer_notifications')
+          .insert({
+            user_id: user.id,
+            subscription_endpoint: this.subscription.endpoint,
+            subscription_keys: {
+              p256dh: p256dh ? btoa(String.fromCharCode(...new Uint8Array(p256dh))) : null,
+              auth: auth ? btoa(String.fromCharCode(...new Uint8Array(auth))) : null
+            },
+            timer_data: {
+              type: 'TIMER_END',
+              isBreak: timerData.isBreak,
+              currentSession: timerData.currentSession,
+              sessionCount: timerData.sessionCount,
+              endTime: timerData.endTime.toISOString()
+            },
+            scheduled_for: timerData.endTime.toISOString(),
+            status: 'pending'
+          });
 
-      if (error) {
-        console.error('❌ Failed to schedule notification:', error);
+        if (error) {
+          console.error('❌ Failed to schedule notification:', error);
+          console.log('⚠️ This is expected if database tables are not set up yet');
+          return false;
+        }
+
+        console.log('✅ Timer notification scheduled');
+        return true;
+      } catch (error) {
+        console.warn('⚠️ Failed to schedule timer notification (database tables may not be set up):', error);
+        console.log('ℹ️ Timer will still work with local notifications');
         return false;
       }
-
-      console.log('✅ Timer notification scheduled');
-      return true;
     } catch (error) {
       console.error('❌ Failed to schedule timer notification:', error);
       return false;

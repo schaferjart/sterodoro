@@ -163,7 +163,7 @@ export const BackgroundSyncTest: React.FC = () => {
         // Test background sync (if supported)
         if ('sync' in window.ServiceWorkerRegistration.prototype) {
           try {
-            await (registration as any).sync.register('sterodoro-sync');
+            await (registration as any).sync.register('productivity-timer-sync');
             addResult('✅ Background sync registered');
           } catch (syncError) {
             addResult(`⚠️ Background sync registration failed: ${syncError instanceof Error ? syncError.message : 'Unknown error'}`);

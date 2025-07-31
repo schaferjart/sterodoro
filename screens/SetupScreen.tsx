@@ -1049,7 +1049,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           
           {mode === 'INTAKE' ? (
             <>
-              <div className="p-4 space-y-3">
+              <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
                 {renderSectionHeader('Select Intake Item(s)')}
                 {intakes.length === 0 ? (
                     <div className="text-center py-8">
@@ -1090,14 +1090,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                 )}
               </div>
               {selectedIntakeIds.length > 0 && (
-                <div className="p-4 space-y-3">
+                <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
                   <DateTimeField label="Time of Intake (for all items)" value={intakeTime} onChange={setIntakeTime} />
                 </div>
               )}
             </>
           ) : mode === 'READING' ? (
             <>
-              <div className="p-4 space-y-3">
+              <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
                   {renderSectionHeader('Book')}
                   {readingObjects.length === 0 ? (
                       <div className="text-center py-8">

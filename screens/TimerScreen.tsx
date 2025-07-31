@@ -161,7 +161,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
       // Show notification if app is in background
       if (document.hidden) {
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Sterodoro Timer', {
+          new Notification('Productivity Timer', {
             body: `${isBreak ? 'Break' : 'Session'} completed!`,
             icon: '/icon-192.png',
             tag: 'timer-end',
@@ -271,7 +271,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
   if (isNoteTaking) {
     return (
       <div className="flex flex-col h-full bg-black text-white animate-fade-in">
-        <header className="p-4 border-b border-gray-800 flex items-center justify-center relative sticky top-0 bg-black z-10">
+        <header className="p-2 sm:p-4 border-b border-gray-800 flex items-center justify-center relative sticky top-0 bg-black z-10">
           <button onClick={() => setIsNoteTaking(false)} className="absolute left-4 p-2 rounded-full hover:bg-gray-800 transition-colors" aria-label="Back to timer">
             <ChevronLeftIcon className="w-6 h-6" />
           </button>
@@ -284,7 +284,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             </div>
           )}
         </header>
-        <main className="flex-grow p-4">
+        <main className="flex-grow p-2 sm:p-4">
           <textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -293,7 +293,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             autoFocus
           />
         </main>
-        <footer className="p-4 border-t border-gray-800">
+        <footer className="p-2 sm:p-4 border-t border-gray-800">
           <button onClick={handleSaveNote} className="w-full p-4 rounded-xl bg-indigo-600 text-white font-bold text-lg transition-colors hover:bg-indigo-700">
             Save Note
           </button>
@@ -339,13 +339,13 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
   return (
     <div className="flex flex-col h-full bg-black text-white">
       <audio ref={audioRef} src="/sound.mp3" preload="auto" style={{ display: 'none' }} />
-      <header className="p-4 text-center">
+      <header className="p-2 sm:p-4 text-center">
         <h2 className="text-gray-400">{config.activity.name}</h2>
-        <h1 className="text-2xl font-bold">{isBreak ? 'Break' : `Session ${currentSession}/${sessionCount}`}</h1>
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold">{isBreak ? 'Break' : `Session ${currentSession}/${sessionCount}`}</h1>
 
       </header>
 
-      <main className="flex-grow flex flex-col items-center justify-center p-4">
+      <main className="flex-grow flex flex-col items-center justify-center p-2 sm:p-4">
         {isBreak ? (
           <div className="w-full space-y-6 flex flex-col items-center">
              <div className="relative w-full h-6 bg-gray-700 rounded-full overflow-hidden">
@@ -354,11 +354,11 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
                     style={{ width: `${progress}%`, transition: 'width 1s linear'}}
                 ></div>
              </div>
-             <p className="text-5xl sm:text-6xl font-mono text-center pt-4">{formatTime(timeRemaining)}</p>
+             <p className="text-4xl sm:text-5xl md:text-6xl font-mono text-center pt-4">{formatTime(timeRemaining)}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center w-full">
-            <p className="text-5xl sm:text-6xl font-mono">{formatTime(timeRemaining)}</p>
+            <p className="text-4xl sm:text-5xl md:text-6xl font-mono">{formatTime(timeRemaining)}</p>
             <p className="text-gray-400 text-sm mb-6">{formatTime(madeTime)} / {formatTime(totalDuration)}</p>
             
             <div className="w-full max-w-xs flex flex-wrap gap-1.5 justify-center">

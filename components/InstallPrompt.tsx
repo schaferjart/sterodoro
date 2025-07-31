@@ -26,7 +26,7 @@ const InstallPrompt: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-indigo-700 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 z-50">
-      <span>Install Sterodoro for offline use!</span>
+      <span>Install Productivity Timer for offline use!</span>
       <button onClick={handleInstall} className="ml-2 px-3 py-1 bg-green-500 rounded font-bold hover:bg-green-600">Install</button>
     </div>
   );

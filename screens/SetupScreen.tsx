@@ -979,7 +979,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     <>
       <GlobalStyles appColors={appColors} />
       <div 
-        className="flex flex-col h-full relative"
+        className="flex flex-col min-h-screen relative"
         style={{ 
           backgroundColor: appColors.background,
           color: appColors.text
@@ -987,7 +987,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       >
       {/* Header removed to eliminate unnecessary spacing */}
       
-      <main className="flex-grow overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-24">
         <div 
           className="divide-y"
           style={{ borderColor: appColors.surface }}
@@ -1695,10 +1695,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       </main>
 
       <footer 
-        className="p-2 sm:p-4 border-t sticky bottom-0"
+        className="p-2 sm:p-4 border-t fixed bottom-0 left-0 right-0 z-10 pb-safe"
         style={{ 
           backgroundColor: appColors.background,
-          borderColor: appColors.surface
+          borderColor: appColors.surface,
+          paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))'
         }}
       >
         <button 

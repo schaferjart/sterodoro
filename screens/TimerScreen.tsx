@@ -293,8 +293,8 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
             autoFocus
           />
         </main>
-        <footer className="p-2 sm:p-4 border-t border-gray-800">
-          <button onClick={handleSaveNote} className="w-full p-4 rounded-xl bg-indigo-600 text-white font-bold text-lg transition-colors hover:bg-indigo-700">
+        <footer className="p-2 sm:p-4 border-t border-gray-800 sticky bottom-0 bg-black z-10">
+          <button onClick={handleSaveNote} className="w-full p-3 sm:p-4 rounded-xl bg-indigo-600 text-white font-bold text-base sm:text-lg transition-colors hover:bg-indigo-700 min-h-[44px]">
             Save Note
           </button>
         </footer>
@@ -392,7 +392,7 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         )}
       </main>
 
-      <footer className="p-4 border-t border-gray-800">
+      <footer className="p-2 sm:p-4 border-t border-gray-800 sticky bottom-0 bg-black z-10">
         <div className="flex justify-around items-center p-3 bg-gray-900 rounded-xl">
           <button onClick={() => setIsNoteTaking(true)} className="relative flex flex-col items-center text-gray-400 hover:text-white transition-colors p-2">
             {notesCount > 0 && (

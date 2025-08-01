@@ -146,10 +146,10 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activitie
       </main>
 
       {/* Fixed Footer */}
-      <footer className="p-4 flex-shrink-0 border-t border-gray-800 bg-black shadow-lg">
+      <footer className="p-2 sm:p-4 flex-shrink-0 border-t border-gray-800 bg-black shadow-lg">
         <button
           onClick={handleSave}
-          className="w-full p-4 rounded-xl bg-indigo-600 text-white font-bold text-lg transition-colors hover:bg-indigo-700 active:bg-indigo-800 shadow-lg"
+          className="w-full p-3 sm:p-4 rounded-xl bg-indigo-600 text-white font-bold text-base sm:text-lg transition-colors hover:bg-indigo-700 active:bg-indigo-800 shadow-lg min-h-[44px]"
         >
           {isFinalTracking ? "Save & Finish" : "Save & Start Break"}
         </button>

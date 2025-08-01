@@ -146,7 +146,7 @@ const AddActivityModal: React.FC<{
 
   return (
     <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-      <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <h3 className="text-lg font-bold text-center">Add New Activity to "{category}"</h3>
         <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Project Phoenix" />
         <InputField label="Sub-Activity" value={subActivity} onChange={setSubActivity} placeholder="e.g., UI Design" />

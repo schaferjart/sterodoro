@@ -21,6 +21,7 @@ import SoundTest from './components/SoundTest';
 import IOSNotificationHelper from './components/IOSNotificationHelper';
 import PushNotificationDebug from './components/PushNotificationDebug';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import GlobalStyles from './components/GlobalStyles';
 import { initializeErrorReporting } from './lib/error-reporting';
 import { validateEnvironment } from './lib/env-validation';
 import { 
@@ -977,10 +978,11 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-black text-gray-50 h-screen w-full font-mono flex flex-col">
+      <GlobalStyles />
+      <div className="bg-theme-background text-theme-text h-screen w-full font-mono flex flex-col">
         {/* Development tools - hidden in production */}
         {false && process.env.NODE_ENV === 'development' && (
-          <div className="p-4 space-y-2 bg-gray-900 border-b border-gray-800">
+          <div className="p-4 space-y-2 bg-theme-surface border-b border-theme-border">
             <AuthStatusChecker />
             <IOSNotificationHelper />
             <NotificationPermission />
@@ -999,7 +1001,7 @@ const App: React.FC = () => {
             <AuthForm />
           </div>
         ) : (
-          <div className="flex-1 w-full h-full bg-black flex flex-col overflow-hidden">
+          <div className="flex-1 w-full h-full bg-theme-background flex flex-col overflow-hidden">
             {renderContent()}
           </div>
         )}

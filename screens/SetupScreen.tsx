@@ -5,6 +5,7 @@ import { ActivityCategory, ActivityObject, SessionConfig, TrackerFrequency, Inta
 import { TRACKERS } from '../constants';
 
 import Slider from '../components/Slider';
+import GlobalStyles from '../components/GlobalStyles';
 
 
 type IntakeLogPayload = {
@@ -975,13 +976,15 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   );
 
   return (
-    <div 
-      className="flex flex-col h-full relative"
-      style={{ 
-        backgroundColor: appColors.background,
-        color: appColors.text
-      }}
-    >
+    <>
+      <GlobalStyles appColors={appColors} />
+      <div 
+        className="flex flex-col h-full relative"
+        style={{ 
+          backgroundColor: appColors.background,
+          color: appColors.text
+        }}
+      >
       {/* Header removed to eliminate unnecessary spacing */}
       
       <main className="flex-grow overflow-y-auto">
@@ -993,15 +996,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <button 
                     onClick={() => setMode('TIMER')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'TIMER')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] ${mode === 'TIMER' ? 'btn-selected' : 'btn-unselected'}`}
                   >
                     Timer
                   </button>
                   <button 
                     onClick={() => setMode('RECORD')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'RECORD')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] ${mode === 'RECORD' ? 'btn-selected' : 'btn-unselected'}`}
                   >
                     Record
                   </button>
@@ -1713,6 +1714,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       {isAddingIntake && <AddIntakeModal onClose={() => setIsAddingIntake(false)} onSave={handleAddNewIntakeAndSelect} />}
       {isAddingReadingObject && <AddReadingModal onClose={() => setIsAddingReadingObject(false)} onSave={handleAddNewReadingObjectAndSelect} />}
     </div>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 import { test, expect } from './auth-helper';
 
-// Mobile UI/UX Test Suite for Productivity Timer App
+// Mobile UI/UX Test Suite for Sterodoro App
 // Tests all critical flows at 375px viewport (iPhone SE)
 
 test.describe('Mobile UI/UX Tests - 375px Viewport', () => {

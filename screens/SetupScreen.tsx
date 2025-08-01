@@ -187,7 +187,7 @@ const DetailItem: React.FC<{ label: string; value: string | number | undefined }
 
 
 
-const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Promise<void>; deleteProtectionEnabled: boolean }> = ({ log, onDelete, deleteProtectionEnabled }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
 
@@ -207,6 +207,7 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
             <p className="font-semibold text-theme-text">{formatDurationMs(durationMs)}</p>
           </div>
         </button>
+        {!deleteProtectionEnabled && (
         <button
           onClick={() => {
             if (confirm(`Delete this session log for "${log.Object.name}"?`)) {
@@ -218,6 +219,7 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
         >
           ×
         </button>
+        )}
       </div>
       {isExpanded && (
         <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
@@ -264,7 +266,7 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
   );
 };
 
-const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promise<void>; deleteProtectionEnabled: boolean }> = ({ log, onDelete, deleteProtectionEnabled }) => {
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
@@ -283,6 +285,7 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
               <p className="font-semibold text-theme-text">{log.quantity} {log.unit}</p>
             </div>
           </button>
+          {!deleteProtectionEnabled && (
           <button
             onClick={() => {
               if (confirm(`Delete this intake log for "${log.intake.name}"?`)) {
@@ -294,6 +297,7 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
           >
             ×
           </button>
+        )}
         </div>
         {isExpanded && (
           <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
@@ -310,7 +314,7 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
     );
 };
 
-const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Promise<void>; deleteProtectionEnabled: boolean }> = ({ log, onDelete, deleteProtectionEnabled }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
   
@@ -331,6 +335,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
               <p className="text-xs sm:text-sm text-theme-text opacity-70">{formatDateTime(log.TimeStart)}</p>
             </div>
           </button>
+          {!deleteProtectionEnabled && (
           <button
             onClick={() => {
               if (confirm(`Delete this reading log for "${log.Object.bookName}"?`)) {
@@ -342,6 +347,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
           >
             ×
           </button>
+        )}
         </div>
         {isExpanded && (
             <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
@@ -386,7 +392,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
     );
 };
 
-const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
+const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<void>; deleteProtectionEnabled: boolean }> = ({ log, onDelete, deleteProtectionEnabled }) => {
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
@@ -405,6 +411,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
               <p className="font-semibold text-theme-text">{log.content.length} chars</p>
             </div>
           </button>
+          {!deleteProtectionEnabled && (
           <button
             onClick={() => {
               if (confirm(`Delete this note log?`)) {
@@ -416,6 +423,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
           >
             ×
           </button>
+        )}
         </div>
         {isExpanded && (
           <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
@@ -461,6 +469,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const [sessionCount, setSessionCount] = useState(2);
   const [trackerFrequency, setTrackerFrequency] = useState<TrackerFrequency>('every_break');
   const [activeSlider, setActiveSlider] = useState<'session' | 'break' | 'count' | null>(null);
+  
+  // Delete protection toggle
+  const [deleteProtectionEnabled, setDeleteProtectionEnabled] = useState(() => {
+    const saved = localStorage.getItem('deleteProtectionEnabled');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  
+  const handleDeleteProtectionToggle = () => {
+    const newValue = !deleteProtectionEnabled;
+    setDeleteProtectionEnabled(newValue);
+    localStorage.setItem('deleteProtectionEnabled', JSON.stringify(newValue));
+  };
 
   // Record/Reading mode state
   const [startTime, setStartTime] = useState('');
@@ -830,7 +850,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     <>
       <div className="p-2 sm:p-3 space-y-2">
           
-                                <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {TRACKERS.map(tracker => ( 
               <button 
                 key={tracker.id} 
@@ -955,17 +975,19 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                         >
                                             {intake.name}
                                         </button>
-                                        <button 
-                                            onClick={() => {
-                                                if (confirm(`Delete "${intake.name}"? This will permanently delete this intake and ALL intake logs that used it.`)) {
-                                                    onDeleteIntake(intake.id);
-                                                }
-                                            }}
-                                            className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                            title="Delete intake"
-                                        >
-                                            ×
-                                        </button>
+                                        {!deleteProtectionEnabled && (
+                                          <button 
+                                              onClick={() => {
+                                                  if (confirm(`Delete "${intake.name}"? This will permanently delete this intake and ALL intake logs that used it.`)) {
+                                                      onDeleteIntake(intake.id);
+                                                  }
+                                              }}
+                                              className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                              title="Delete intake"
+                                          >
+                                              ×
+                                          </button>
+                                        )}
                                     </div>
                                 )
                             })}
@@ -1090,17 +1112,19 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   >
                                       {book.bookName}
                                   </button>
-                                  <button 
-                                      onClick={() => {
-                                          if (confirm(`Delete "${book.bookName}"? This will permanently delete this book and ALL reading logs that used it.`)) {
-                                              onDeleteReadingObject(book.id);
-                                          }
-                                      }}
-                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="Delete book"
-                                  >
-                                      ×
-                                  </button>
+                                  {!deleteProtectionEnabled && (
+                                    <button 
+                                        onClick={() => {
+                                            if (confirm(`Delete "${book.bookName}"? This will permanently delete this book and ALL reading logs that used it.`)) {
+                                                onDeleteReadingObject(book.id);
+                                            }
+                                        }}
+                                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Delete book"
+                                    >
+                                        ×
+                                    </button>
+                                  )}
                               </div>
                           ))}
                           <button 
@@ -1330,7 +1354,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             <>
               <div className="p-2 sm:p-3 space-y-2">
                 
-                                      <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                       {Object.values(ActivityCategory).map(cat => ( 
                         <button 
                           key={cat} 
@@ -1366,17 +1390,19 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   >
                                     {act.name}
                                   </button>
-                                  <button 
-                                    onClick={() => {
-                                      if (confirm(`Delete "${act.name}"? This will permanently delete this activity and ALL session logs that used it.`)) {
-                                        onDeleteActivity(act.id);
-                                      }
-                                    }}
-                                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                    title="Delete activity"
-                                  >
-                                    ×
-                                  </button>
+                                  {!deleteProtectionEnabled && (
+                                    <button 
+                                      onClick={() => {
+                                        if (confirm(`Delete "${act.name}"? This will permanently delete this activity and ALL session logs that used it.`)) {
+                                          onDeleteActivity(act.id);
+                                        }
+                                      }}
+                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Delete activity"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                                   <button 
@@ -1457,7 +1483,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   </div>
                   <div className="p-2 sm:p-3 space-y-2">
                     
-                                          <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       {allTrackers.map(tracker => ( 
                         <button 
                           key={tracker.id} 
@@ -1479,14 +1505,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   </div>)}
                   <div className="p-2 sm:p-3 space-y-2">
                       <div className="grid grid-cols-3 gap-2">
-                                  <button
-                                      onClick={() => onSoundEnabledChange(!soundEnabled)}
-                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(soundEnabled)}`}
-                                  >
-                              {soundEnabled ? 'Sound Enabled' : 'Sound Disabled'}
+                                  <button 
+                                  onClick={() => onSoundEnabledChange(!soundEnabled)}
+                          className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(soundEnabled)}`}
+                              >
+                          {soundEnabled ? 'Sound Enabled' : 'Sound Disabled'}
                                   </button>
-                          <div></div>
-                          <div></div>
+                      <div></div>
+                      <div></div>
                               </div>
                           </div>
                 </>
@@ -1649,16 +1675,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         <ul className="space-y-2">
                           {logs.map((log) => {
                             if ('intake' in log) {
-                              return <IntakeLogItem key={log.id} log={log as IntakeLog} onDelete={onDeleteIntakeLog} />;
+                              return <IntakeLogItem key={log.id} log={log as IntakeLog} onDelete={onDeleteIntakeLog} deleteProtectionEnabled={deleteProtectionEnabled} />;
                             }
                             if ('Object' in log && 'bookName' in (log as ReadingLog).Object) {
-                              return <ReadingLogItem key={log.id} log={log as ReadingLog} onDelete={onDeleteReadingLog} />;
+                              return <ReadingLogItem key={log.id} log={log as ReadingLog} onDelete={onDeleteReadingLog} deleteProtectionEnabled={deleteProtectionEnabled} />;
                             }
                             if ('TimeStart' in log) {
-                              return <SessionLogItem key={log.id} log={log as SessionLog} onDelete={onDeleteSessionLog} />;
+                              return <SessionLogItem key={log.id} log={log as SessionLog} onDelete={onDeleteSessionLog} deleteProtectionEnabled={deleteProtectionEnabled} />;
                             }
                             if ('content' in log) {
-                              return <NoteLogItem key={log.id} log={log as NoteLog} onDelete={onDeleteNoteLog} />;
+                              return <NoteLogItem key={log.id} log={log as NoteLog} onDelete={onDeleteNoteLog} deleteProtectionEnabled={deleteProtectionEnabled} />;
                             }
                             return null;
                           })}
@@ -1686,6 +1712,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         </div>
                         
                         <div className="pt-4 border-t border-theme-border">
+                          <h3 className="text-sm font-semibold text-white mb-2">App Settings</h3>
+                          <div className="space-y-2">
+                            <button
+                              onClick={handleDeleteProtectionToggle}
+                              className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(!deleteProtectionEnabled)}`}
+                            >
+                              {deleteProtectionEnabled ? 'Delete Protection: ON' : 'Delete Protection: OFF'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-theme-border">
                           <h3 className="text-sm font-semibold text-white mb-2">Account Actions</h3>
                           <button 
                             onClick={onLogout}
@@ -1706,7 +1744,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         </div>
       </main>
 
-            <footer className="border-t fixed bottom-0 left-0 right-0 z-10 bg-theme-background border-theme-border" style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}>
+            <footer className="fixed bottom-0 left-0 right-0 z-10 bg-theme-background" style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}>
         <div className="p-2 sm:p-3">
             <button 
               onClick={handleAction} 

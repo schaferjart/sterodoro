@@ -61,14 +61,14 @@ const App: React.FC = () => {
     try {
       validateEnvironment();
       initializeErrorReporting();
-      console.log('Productivity Timer initialized successfully');
+      console.log('Sterodoro initialized successfully');
       
       // Request notification permission for timer alerts
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
       }
     } catch (error) {
-      console.error('Failed to initialize Productivity Timer:', error);
+      console.error('Failed to initialize Sterodoro:', error);
     }
   }, []);
 

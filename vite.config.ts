@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
           manifest: {
             name: 'Sterodoro',
             short_name: 'Sterodoro',
-            description: 'A productivity timer and tracker app.',
+            description: 'A sterodoro timer and tracker app.',
             start_url: '/',
             scope: '/',
             display: 'standalone',

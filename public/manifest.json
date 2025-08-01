@@ -1,7 +1,7 @@
 {
   "name": "Sterodoro",
   "short_name": "Sterodoro",
-  "description": "A productivity timer and tracker app.",
+  "description": "A sterodoro timer and tracker app.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#18181b",

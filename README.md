@@ -1,4 +1,4 @@
-# Sterodoro - Offline-First Productivity Timer
+# Sterodoro
 
 A modern, offline-first Progressive Web App (PWA) for productivity tracking and time management. Built with React 19, TypeScript, and Supabase.
 

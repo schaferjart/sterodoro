@@ -1,16 +1,12 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { SessionConfig, PerformanceUpdate, SessionLog, ActivityObject, SessionNote, TrackerEntry, IntakeObject, IntakeLog, IntakeUnit, AppLog, ReadingObject, ReadingLog, NoteLog, ActivityCategory } from './types';
+import { SessionConfig, PerformanceUpdate, SessionLog, ActivityObject, SessionNote, TrackerEntry, IntakeObject, IntakeLog, IntakeUnit, AppLog, ReadingObject, ReadingLog, NoteLog } from './types';
 import { ACTIVITIES, INTAKE_OBJECTS, READING_OBJECTS } from './constants';
 import SetupScreen from './screens/SetupScreen';
 import TimerScreen from './screens/TimerScreen';
 import TrackerScreen from './screens/TrackerScreen';
 import NotePromptScreen from './screens/NotePromptScreen';
 import AuthForm from './components/AuthForm';
-import SupabaseTest from './components/SupabaseTest';
-import CustomObjectTest from './components/CustomObjectTest';
-import LogTest from './components/LogTest';
-import DeleteTest from './components/DeleteTest';
 import OfflineStorageTest from './components/OfflineStorageTest';
 import { BackgroundSyncTest } from './components/BackgroundSyncTest';
 import SyncQueueViewer from './components/SyncQueueViewer';
@@ -26,9 +22,7 @@ import { initializeErrorReporting } from './lib/error-reporting';
 import { validateEnvironment } from './lib/env-validation';
 import { 
   getCurrentLocalTime, 
-  getCurrentTimestamp, 
-  formatLocalDate,
-  getRelativeTimeString 
+  getCurrentTimestamp
 } from './lib/time-utils';
 import { syncManager } from './lib/sync-manager';
 import { offlineStorage } from './lib/offline-storage';
@@ -46,14 +40,7 @@ import {
   getSessionLogs,
   getIntakeLogs,
   getReadingLogs,
-  getNoteLogs,
-  deleteActivityObject as deleteActivityObjectDB,
-  deleteIntakeObject as deleteIntakeObjectDB,
-  deleteReadingObject as deleteReadingObjectDB,
-  deleteSessionLog as deleteSessionLogDB,
-  deleteIntakeLog as deleteIntakeLogDB,
-  deleteReadingLog as deleteReadingLogDB,
-  deleteNoteLog as deleteNoteLogDB
+  getNoteLogs
 } from './lib/database';
 import { signOut } from './lib/auth';
 
@@ -157,21 +144,21 @@ const App: React.FC = () => {
     try {
       // Load custom activities
       const customActivities = await getActivityObjects();
-      setActivities(prev => [
+      setActivities([
         ...ACTIVITIES.filter(a => !a.id.startsWith('user-')),
         ...customActivities
       ]);
       
       // Load custom intakes
       const customIntakes = await getIntakeObjects();
-      setIntakes(prev => [
+      setIntakes([
         ...INTAKE_OBJECTS.filter(i => !i.id.startsWith('user-')),
         ...customIntakes
       ]);
 
       // Load custom reading objects
       const customReadingObjects = await getReadingObjects();
-      setReadingObjects(prev => [
+      setReadingObjects([
         ...READING_OBJECTS.filter(r => !r.id.startsWith('user-')),
         ...customReadingObjects
       ]);
@@ -292,7 +279,7 @@ const App: React.FC = () => {
   useEffect(() => {
     import('./lib/auth').then(({ getSession, onAuthStateChange }) => {
       getSession().then(({ data }) => setUser(data.session?.user ?? null));
-      const { data: listener } = onAuthStateChange((_event, session) => {
+      onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
       });
     });
@@ -325,7 +312,6 @@ const App: React.FC = () => {
 
   const saveSessionLog = useCallback((finalPerformanceLogs: PerformanceUpdate[], finalNotes: SessionNote[]) => {
     if (config) {
-      const endTime = getCurrentTimestamp();
       const endTimeISO = getCurrentLocalTime();
       const activityName = config.activity.name.replace(/\s+/g, '_');
       

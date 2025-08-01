@@ -101,27 +101,13 @@ const InputField: React.FC<{
     type?: string;
 }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
     <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-theme-text mb-1">{label}</label>
         <input
             type={type}
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
-            style={{
-                backgroundColor: '#ffffff',
-                color: '#000000',
-                borderColor: '#d1d5db',
-                outline: 'none'
-            }}
-            onFocus={(e) => {
-                e.target.style.borderColor = '#9ca3af';
-                e.target.style.boxShadow = '0 0 0 2px #9ca3af';
-            }}
-            onBlur={(e) => {
-                e.target.style.borderColor = '#d1d5db';
-                e.target.style.boxShadow = 'none';
-            }}
+            className="w-full bg-theme-surface text-theme-text p-2 rounded-lg border border-theme-border focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border modal-input"
         />
     </div>
 );
@@ -132,183 +118,63 @@ const DateTimeField: React.FC<{
     onChange: (value: string) => void;
 }> = ({ label, value, onChange }) => (
     <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-theme-text mb-1">{label}</label>
         <input
             type="datetime-local"
             value={value}
             onChange={e => onChange(e.target.value)}
-            className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
-            style={{
-                backgroundColor: '#ffffff',
-                color: '#000000',
-                borderColor: '#d1d5db',
-                outline: 'none'
-            }}
-            onFocus={(e) => {
-                e.target.style.borderColor = '#9ca3af';
-                e.target.style.boxShadow = '0 0 0 2px #9ca3af';
-            }}
-            onBlur={(e) => {
-                e.target.style.borderColor = '#d1d5db';
-                e.target.style.boxShadow = 'none';
-            }}
+            className="w-full bg-theme-surface text-theme-text p-2 rounded-lg border border-theme-border focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border modal-input"
         />
     </div>
 );
 
-const AddActivityModal: React.FC<{
-  category: ActivityCategory;
-  onSave: (activityData: Omit<ActivityObject, 'id' | 'category'>) => void;
-  onClose: () => void;
-}> = ({ category, onSave, onClose }) => {
-  const [name, setName] = useState('');
-  const [subActivity, setSubActivity] = useState('');
-  const [subSubActivity, setSubSubActivity] = useState('');
-  const [info, setInfo] = useState('');
-
-  const handleSave = () => {
-    if (name.trim()) {
-      onSave({ name, subActivity, subSubActivity, info });
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
-        <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
-        <h3 className="text-lg font-bold text-center">Add New Activity to "{category}"</h3>
-        <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Project Phoenix" />
-        <InputField label="Sub-Activity" value={subActivity} onChange={setSubActivity} placeholder="e.g., UI Design" />
-        <InputField label="Sub-Sub-Activity" value={subSubActivity} onChange={setSubSubActivity} placeholder="e.g., Login Screen" />
-        <InputField label="Info" value={info} onChange={setInfo} placeholder="e.g., Focus on component library" />
-        <div className="flex gap-3 pt-4">
-            <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-            <button onClick={handleSave} disabled={!name.trim()} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: !name.trim() ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: !name.trim() ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AddIntakeModal: React.FC<{
-    onSave: (intakeData: Omit<IntakeObject, 'id'>) => void;
-    onClose: () => void;
-  }> = ({ onSave, onClose }) => {
-    const [name, setName] = useState('');
-    const [type, setType] = useState<IntakeType>(IntakeType.Food);
-    const [info, setInfo] = useState('');
-    const [defaultQuantity, setDefaultQuantity] = useState('');
-    const [defaultUnit, setDefaultUnit] = useState<IntakeUnit | ''>('');
-
-  
-    const handleSave = () => {
-      if (name.trim() && defaultQuantity && defaultUnit) {
-        onSave({ 
-            name, 
-            type, 
-            info,
-            defaultQuantity: parseFloat(defaultQuantity),
-            defaultUnit: defaultUnit as IntakeUnit,
-        });
-      }
+const DateTimeButton: React.FC<{
+    value: string;
+    onChange: (value: string) => void;
+    label: string;
+    isExpanded: boolean;
+    onToggle: () => void;
+}> = ({ value, label, isExpanded, onToggle }) => {
+    // Format the datetime value for display
+    const formatDateTime = (dateTimeString: string) => {
+        if (!dateTimeString) {
+            const now = new Date();
+            // Default start time to 1 hour ago, end time to now
+            const defaultTime = label === "Start Time" 
+                ? new Date(now.getTime() - 60 * 60 * 1000) 
+                : now;
+            return {
+                time: defaultTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                date: defaultTime.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')
+            };
+        }
+        
+        const date = new Date(dateTimeString);
+        return {
+            time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+            date: date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')
+        };
     };
+    
+    const { time, date } = formatDateTime(value);
   
         return (
-      <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
-        <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
-          <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
-            <h3 className="text-lg font-bold text-center">Add New Intake Item</h3>
-          <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Coffee" />
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
-            <select value={type} onChange={e => setType(e.target.value as IntakeType)} className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
-                style={{
-                    backgroundColor: '#ffffff',
-                    color: '#000000',
-                    borderColor: '#d1d5db',
-                    outline: 'none'
-                }}
-                onFocus={(e) => {
-                    e.target.style.borderColor = '#9ca3af';
-                    e.target.style.boxShadow = '0 0 0 2px #9ca3af';
-                }}
-                onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                }}>
-                {Object.values(IntakeType).map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+        <div className="flex-1">
+            <button
+                type="button"
+                onClick={onToggle}
+                className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isExpanded ? 'btn-selected' : 'btn-unselected'}`}
+            >
+                <div className="leading-tight">
+                    <div className="font-medium">{time}</div>
+                    <div className="text-xs opacity-75">{date}</div>
           </div>
-          <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., 200mg Caffeine" />
-          <InputField label="Default Quantity" value={defaultQuantity} onChange={setDefaultQuantity} placeholder="e.g., 1" type="number" />
-           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Default Unit</label>
-            <select value={defaultUnit} onChange={e => setDefaultUnit(e.target.value as IntakeUnit)} className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
-                style={{
-                    backgroundColor: '#ffffff',
-                    color: '#000000',
-                    borderColor: '#d1d5db',
-                    outline: 'none'
-                }}
-                onFocus={(e) => {
-                    e.target.style.borderColor = '#9ca3af';
-                    e.target.style.boxShadow = '0 0 0 2px #9ca3af';
-                }}
-                onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                }}>
-                <option value="" disabled>Select a unit</option>
-                {Object.values(IntakeUnit).map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-              <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: (!name.trim() || !defaultQuantity || !defaultUnit) ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
-          </div>
-        </div>
+            </button>
       </div>
     );
 };
 
-const AddReadingModal: React.FC<{
-    onSave: (readingData: Omit<ReadingObject, 'id'>) => void;
-    onClose: () => void;
-  }> = ({ onSave, onClose }) => {
-    const [bookName, setBookName] = useState('');
-    const [author, setAuthor] = useState('');
-    const [year, setYear] = useState('');
-    const [info, setInfo] = useState('');
 
-    const handleSave = () => {
-      if (bookName.trim() && author.trim()) {
-        onSave({ 
-            bookName, 
-            author,
-            year: year ? parseInt(year, 10) : undefined,
-            info,
-        });
-      }
-    };
-  
-        return (
-      <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
-        <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
-          <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
-            <h3 className="text-lg font-bold text-center">Add New Book</h3>
-          <InputField label="Book Name*" value={bookName} onChange={setBookName} placeholder="e.g., The Midnight Library" />
-          <InputField label="Author*" value={author} onChange={setAuthor} placeholder="e.g., Matt Haig" />
-          <InputField label="Year Published" value={year} onChange={setYear} placeholder="e.g., 2020" type="number" />
-          <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., Fiction, Fantasy" />
-          <div className="flex gap-3 pt-4">
-              <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: (!bookName.trim() || !author.trim()) ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
-          </div>
-        </div>
-      </div>
-    );
-};
 
 const DetailItem: React.FC<{ label: string; value: string | number | undefined }> = ({ label, value }) => {
   if (!value && value !== 0) return null;
@@ -319,48 +185,14 @@ const DetailItem: React.FC<{ label: string; value: string | number | undefined }
   );
 };
 
-const ColorPicker: React.FC<{
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}> = ({ label, value, onChange }) => (
-  <div className="flex items-center justify-between">
-    <span className="text-sm">{label}</span>
-    <div className="flex items-center gap-2">
-      <div 
-        className="w-8 h-8 rounded-lg border-2 cursor-pointer"
-        style={{ 
-          backgroundColor: value,
-          borderColor: '#ffffff'
-        }}
-        onClick={() => {
-          const input = document.createElement('input');
-          input.type = 'color';
-          input.value = value;
-          input.onchange = (e) => {
-            const target = e.target as HTMLInputElement;
-            onChange(target.value);
-          };
-          input.click();
-        }}
-      />
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-20 px-2 py-1 text-xs rounded border focus:outline-none"
-        placeholder="#000000"
-      />
-    </div>
-  </div>
-);
+
 
 const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Promise<void> }> = ({ log, onDelete }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
 
   return (
-    <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
       <div className="flex justify-between items-center p-4">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -368,8 +200,8 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
           aria-expanded={isExpanded}
         >
           <div>
-            <p className="font-bold text-white">{log.Object.name}</p>
-            <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+            <p className="font-bold text-theme-text">{log.Object.name}</p>
+            <p className="text-sm text-theme-text opacity-70">{formatDateTime(log.TimeStart)}</p>
           </div>
           <div className="text-right">
             <p className="font-semibold text-indigo-400">{formatDurationMs(durationMs)}</p>
@@ -388,10 +220,10 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
         </button>
       </div>
       {isExpanded && (
-        <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+        <div className="p-4 border-t border-theme-border bg-theme-surface/50 space-y-4 animate-fade-in text-sm">
           <div>
-            <h4 className="font-bold text-gray-200 mb-1">Details</h4>
-            <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+            <h4 className="font-bold text-theme-text mb-1">Details</h4>
+            <div className="pl-4 border-l-2 border-theme-border space-y-1 text-xs">
               <DetailItem label="Category" value={log.Object.type} />
               <DetailItem label="Sub-Activity" value={log.Object.subActivity} />
               <DetailItem label="Sub-Sub-Activity" value={log.Object.subSubActivity} />
@@ -436,7 +268,7 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
-      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -483,7 +315,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
     const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
   
     return (
-      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -539,7 +371,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
               <div>
                 <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
                 <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
-                  {log.TrackerAndMetric.map((entry, i) => (
+                  {log.TrackerAndMetric.map((entry) => (
                     <li key={entry.timestamp}>
                        <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
                        <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
@@ -558,7 +390,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
-      <li className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -598,7 +430,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
               <div>
                 <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
                 <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
-                  {log.TrackerAndMetric.map((entry, i) => (
+                  {log.TrackerAndMetric.map((entry) => (
                     <li key={entry.timestamp}>
                        <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
                        <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
@@ -616,88 +448,12 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
 const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledChange, userEmail, ...props }) => {
   const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, activities, onAddNewActivity, onDeleteActivity, intakes, onAddNewIntake, onDeleteIntake, readingObjects, onAddNewReadingObject, onDeleteReadingObject, logs, onDeleteSessionLog, onDeleteIntakeLog, onDeleteReadingLog, onDeleteNoteLog, onLogout } = props;
   const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE' | 'DATA' | 'SETTINGS' | null>(null);
-  const [settingsSubMode, setSettingsSubMode] = useState<'USER' | 'APPLICATION_LOOK'>('USER');
-  
-  // Color customization state
-  const [appColors, setAppColors] = useState({
-    background: '#ffffff',
-    surface: '#ffffff',
-    primary: '#4f46e5',
-    text: '#000000',
-    accent: '#10b981',
-    // Button hierarchy system
-    buttonUnselected: {
-      background: '#ffffff',
-      stroke: '#000000',
-      strokeWeight: 1,
-      text: '#000000',
-      fontWeight: 'normal'
-    },
-    buttonSelected: {
-      background: '#b8b8b8',
-      stroke: '#000000',
-      strokeWeight: 2,
-      text: '#000000',
-      fontWeight: 'normal'
-    }
-  });
-
-  // Predefined theme presets
-  const themePresets = {
-    dark: {
-      name: 'Dark',
-      colors: {
-        background: '#000000',
-        surface: '#000000',
-        primary: '#4f46e5',
-        text: '#ffffff',
-        accent: '#10b981',
-        buttonUnselected: {
-          background: '#ffffff',
-          stroke: '#ffffff',
-          strokeWeight: 1,
-          text: '#000000',
-          fontWeight: 'normal'
-        },
-        buttonSelected: {
-          background: '#b8b8b8',
-          stroke: '#ffffff',
-          strokeWeight: 2,
-          text: '#000000',
-          fontWeight: 'normal'
-        }
-      }
-    },
-    light: {
-      name: 'Light',
-      colors: {
-        background: '#ffffff',
-        surface: '#ffffff',
-        primary: '#4f46e5',
-        text: '#000000',
-        accent: '#10b981',
-        buttonUnselected: {
-          background: '#ffffff',
-          stroke: '#000000',
-          strokeWeight: 1,
-          text: '#000000',
-          fontWeight: 'normal'
-        },
-        buttonSelected: {
-          background: '#b8b8b8',
-          stroke: '#000000',
-          strokeWeight: 2,
-          text: '#000000',
-          fontWeight: 'normal'
-        }
-      }
-    }
-  };
+  // Simplified theme - no state needed, uses CSS variables
   
   // Activity states
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<ActivityObject | null>(null);
-  const [isAddingActivity, setIsAddingActivity] = useState(false);
+  // const [isAddingActivity, setIsAddingActivity] = useState(false); // TODO: Will be re-added for inline forms
 
   // Timer mode state
   const [sessionDuration, setSessionDuration] = useState(5);
@@ -711,15 +467,37 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const [endTime, setEndTime] = useState('');
   const [noteText, setNoteText] = useState('');
   const [trackerMetrics, setTrackerMetrics] = useState<Record<string, number> | null>(null);
+  const [expandedDateTimePicker, setExpandedDateTimePicker] = useState<'start' | 'end' | null>(null);
 
   // Intake mode state
   const [selectedIntakeIds, setSelectedIntakeIds] = useState<string[]>([]);
   const [intakeTime, setIntakeTime] = useState('');
   const [isAddingIntake, setIsAddingIntake] = useState(false);
+  const [newIntakeName, setNewIntakeName] = useState('');
+  const [newIntakeType, setNewIntakeType] = useState<IntakeType>(IntakeType.Food);
+  const [newIntakeQuantity, setNewIntakeQuantity] = useState('');
+  const [newIntakeUnit, setNewIntakeUnit] = useState<IntakeUnit | ''>('');
+  const [newIntakeInfo, setNewIntakeInfo] = useState('');
+  // Inline dropdown open states for custom button-like selects
+  const [isIntakeTypeOpen, setIsIntakeTypeOpen] = useState(false);
+  const [isIntakeUnitOpen, setIsIntakeUnitOpen] = useState(false);
+  
+  // Inline activity form states
+  const [isAddingActivity, setIsAddingActivity] = useState(false);
+  const [newActivityName, setNewActivityName] = useState('');
+  const [newActivitySubActivity, setNewActivitySubActivity] = useState('');
+  const [newActivitySubSubActivity, setNewActivitySubSubActivity] = useState('');
+  const [newActivityInfo, setNewActivityInfo] = useState('');
+  
+  // Inline reading form states
+  const [isAddingReadingObject, setIsAddingReadingObject] = useState(false);
+  const [newReadingBookName, setNewReadingBookName] = useState('');
+  const [newReadingAuthor, setNewReadingAuthor] = useState('');
+  const [newReadingYear, setNewReadingYear] = useState('');
+  const [newReadingInfo, setNewReadingInfo] = useState('');
   
   // Reading mode state
   const [selectedReadingObject, setSelectedReadingObject] = useState<ReadingObject | null>(null);
-  const [isAddingReadingObject, setIsAddingReadingObject] = useState(false);
 
   // Note mode state
   const [noteTitle, setNoteTitle] = useState('');
@@ -767,21 +545,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     resetForms();
   }, [mode, resetForms]);
 
-  const handleAddNewActivityAndSelect = async (activityData: Omit<ActivityObject, 'id' | 'category'>) => {
-    if (!selectedCategory) {
-      alert('Please select a category first');
-      return;
-    }
-    
-    try {
-      const newActivity = await onAddNewActivity({ ...activityData, category: selectedCategory });
-      setSelectedActivity(newActivity);
-      setIsAddingActivity(false);
-    } catch (error) {
-      console.error('Failed to add new activity:', error);
-      alert('Failed to add new activity. Please try again.');
-    }
-  };
+  // TODO: Will be re-added for inline activity forms
+  // const handleAddNewActivityAndSelect = async (activityData: Omit<ActivityObject, 'id' | 'category'>) => { ... }
   
   const handleToggleIntake = (intakeId: string) => {
     const newIds = selectedIntakeIds.includes(intakeId)
@@ -804,6 +569,68 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     }
   };
   
+  const handleSaveInlineIntake = async () => {
+    if (!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit) return;
+    
+    try {
+      const intakeData = {
+        name: newIntakeName,
+        type: newIntakeType,
+        info: newIntakeInfo,
+        defaultQuantity: parseFloat(newIntakeQuantity),
+        defaultUnit: newIntakeUnit as IntakeUnit,
+      };
+      
+      await handleAddNewIntakeAndSelect(intakeData);
+      
+      // Reset form and close
+      setNewIntakeName('');
+      setNewIntakeType(IntakeType.Food);
+      setNewIntakeQuantity('');
+      setNewIntakeUnit('');
+      setNewIntakeInfo('');
+      setIsAddingIntake(false);
+    } catch (error) {
+      console.error('Failed to save inline intake:', error);
+    }
+  };
+
+  const handleAddNewActivityAndSelect = async (activityData: Omit<ActivityObject, 'id'>) => {
+    try {
+      const newActivity = await onAddNewActivity(activityData);
+      setSelectedActivity(newActivity);
+      setIsAddingActivity(false);
+    } catch (error) {
+      console.error('Failed to add new activity:', error);
+      alert('Failed to add new activity. Please try again.');
+    }
+  };
+
+  const handleSaveInlineActivity = async () => {
+    if (!newActivityName.trim() || !selectedCategory) return;
+    
+    try {
+      const activityData = {
+        name: newActivityName,
+        category: selectedCategory,
+        subActivity: newActivitySubActivity || undefined,
+        subSubActivity: newActivitySubSubActivity || undefined,
+        info: newActivityInfo || undefined,
+      };
+      
+      await handleAddNewActivityAndSelect(activityData);
+      
+      // Reset form and close
+      setNewActivityName('');
+      setNewActivitySubActivity('');
+      setNewActivitySubSubActivity('');
+      setNewActivityInfo('');
+      setIsAddingActivity(false);
+    } catch (error) {
+      console.error('Failed to save inline activity:', error);
+    }
+  };
+  
   const handleAddNewReadingObjectAndSelect = async (readingData: Omit<ReadingObject, 'id'>) => {
     try {
       const newReadingObject = await onAddNewReadingObject(readingData);
@@ -811,7 +638,31 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       setIsAddingReadingObject(false);
     } catch (error) {
       console.error('Failed to add new reading object:', error);
-      alert('Failed to add new reading object. Please try again.');
+      alert('Failed to add new book. Please try again.');
+    }
+  };
+
+  const handleSaveInlineReadingObject = async () => {
+    if (!newReadingBookName.trim()) return;
+    
+    try {
+      const readingData = {
+        bookName: newReadingBookName,
+        author: newReadingAuthor,
+        year: newReadingYear ? parseInt(newReadingYear) : undefined,
+        info: newReadingInfo || undefined,
+      };
+      
+      await handleAddNewReadingObjectAndSelect(readingData);
+      
+      // Reset form and close
+      setNewReadingBookName('');
+      setNewReadingAuthor('');
+      setNewReadingYear('');
+      setNewReadingInfo('');
+      setIsAddingReadingObject(false);
+    } catch (error) {
+      console.error('Failed to save inline reading object:', error);
     }
   };
 
@@ -845,44 +696,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     setTrackerMetrics(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  // Color customization handlers
-  const handleColorChange = (colorKey: keyof typeof appColors, value: string) => {
-    setAppColors(prev => ({ ...prev, [colorKey]: value }));
-  };
-
-  const handleThemePreset = (presetKey: keyof typeof themePresets) => {
-    const preset = themePresets[presetKey];
-    setAppColors(preset.colors);
-  };
-
-  // Hierarchical button styling system
+  // Simplified button styling using CSS classes
   const getButtonStyle = (isActive: boolean = false, isDisabled: boolean = false) => {
     if (isDisabled) {
-      return {
-        backgroundColor: appColors.surface,
-        color: appColors.text,
-        borderColor: appColors.text,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        fontWeight: 'normal'
-      };
+      return 'btn-unselected opacity-50 cursor-not-allowed';
     }
-    
-    const buttonConfig = isActive ? appColors.buttonSelected : appColors.buttonUnselected;
-    return {
-      backgroundColor: buttonConfig.background,
-      color: buttonConfig.text,
-      borderColor: buttonConfig.stroke,
-      borderWidth: `${buttonConfig.strokeWeight}px`,
-      borderStyle: 'solid',
-      fontWeight: buttonConfig.fontWeight
-    };
+    return isActive ? 'btn-selected' : 'btn-unselected';
   };
-
-  const getContainerStyle = () => ({
-    backgroundColor: appColors.surface,
-    borderColor: appColors.text
-  });
   
   const isRecordInvalid = !selectedActivity || !startTime || !endTime || new Date(startTime) >= new Date(endTime);
   const isReadingInvalid = !selectedReadingObject || !startTime || !endTime || new Date(startTime) >= new Date(endTime);
@@ -984,21 +804,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
 
   const { disabled: actionButtonDisabled, text: actionButtonText } = getActionButtonState();
 
-  const renderSectionHeader = (title: string) => (
-      <div className="flex justify-between items-center"><h3 className="font-bold text-lg">{title}</h3></div>
-  );
+
 
   const renderOptionalTrackers = () => (
     <>
-      <div className="p-4 space-y-3">
-          {renderSectionHeader('Trackers (Optional)')}
-          <div className="grid grid-cols-3 gap-2">
+      <div className="p-3 sm:p-4 space-y-3">
+          
+                                <div className="grid grid-cols-3 gap-3">
             {TRACKERS.map(tracker => ( 
               <button 
                 key={tracker.id} 
                 onClick={() => handleTrackerSelect(tracker.id)} 
-                className="p-3 rounded-lg text-sm transition-colors text-center border"
-                style={getButtonStyle(selectedTrackerId === tracker.id)}
+                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
               >
                 {tracker.name}
               </button>
@@ -1006,8 +823,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           </div>
       </div>
       {selectedTrackerId && trackerMetrics && (
-          <div className="p-4 space-y-3">
-              {renderSectionHeader(TRACKERS.find(t => t.id === selectedTrackerId)?.name || 'Tracker')}
+          <div className="p-3 sm:p-4 space-y-3">
+              {(TRACKERS.find(t => t.id === selectedTrackerId)?.name || 'Tracker')}
               <div className="space-y-6 px-2 pt-2">
                   {Object.entries(trackerMetrics).map(([metricName, metricValue]) => (
                       <div key={metricName}>
@@ -1027,95 +844,65 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const renderTrackerAndNotes = () => (
       <>
         {renderOptionalTrackers()}
-        <div className="p-4 space-y-3">
-            {renderSectionHeader('Notes (Optional)')}
-            <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add notes about this session..." className="w-full h-24 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 resize-none" />
+        <div className="p-3 sm:p-4 space-y-3">
+            
+                            <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add notes about this session..." className="w-full h-24 bg-theme-surface text-theme-text p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border resize-none border border-theme-border" />
         </div>
       </>
   );
 
   return (
     <>
-      <GlobalStyles appColors={appColors} />
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .modal-input {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-color: #d1d5db !important;
-            outline: none !important;
-          }
-          .modal-input:focus {
-            border-color: #9ca3af !important;
-            box-shadow: 0 0 0 2px #9ca3af !important;
-          }
-        `
-      }} />
-      <div 
-        className="flex flex-col min-h-screen relative"
-        style={{ 
-          backgroundColor: appColors.background,
-          color: appColors.text
-        }}
-      >
+      <GlobalStyles />
+      <div className="flex flex-col min-h-screen relative bg-theme-background text-theme-text safe-area-top safe-area-left safe-area-right">
       {/* Header removed to eliminate unnecessary spacing */}
       
       <main className="flex-1 overflow-y-auto pb-24">
-        <div 
-          className="divide-y"
-          style={{ borderColor: appColors.surface }}
-        >
-          <div className="p-2 sm:p-4 space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div>
+          <div className="p-3 sm:p-4 space-y-3">
+              <div className="grid grid-cols-3 gap-3">
                   <button 
                     onClick={() => setMode('TIMER')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'TIMER')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'TIMER')}`}
                   >
                     Timer
                   </button>
                   <button 
                     onClick={() => setMode('RECORD')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'RECORD')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'RECORD')}`}
                   >
                     Record
                   </button>
                   <button 
                     onClick={() => setMode('INTAKE')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'INTAKE')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'INTAKE')}`}
                   >
                     Intake
                   </button>
                   <button 
                     onClick={() => setMode('READING')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'READING')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'READING')}`}
                   >
                     Reading
                   </button>
                   <button 
                     onClick={() => setMode('NOTE')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'NOTE')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'NOTE')}`}
                   >
                     Note
                   </button>
                   <div className="p-4 rounded-lg bg-transparent"></div>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <div className="grid grid-cols-3 gap-3">
                   <button 
                     onClick={() => setMode('DATA')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'DATA')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'DATA')}`}
                   >
                     Data
                   </button>
                   <button 
                     onClick={() => setMode('SETTINGS')} 
-                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
-                    style={getButtonStyle(mode === 'SETTINGS')}
+                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'SETTINGS')}`}
                   >
                     Settings
                   </button>
@@ -1127,25 +914,24 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           
           {mode === 'INTAKE' ? (
             <>
-              <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
-                {renderSectionHeader('Select Intake Item(s)')}
+              <div className="p-3 sm:p-4 space-y-3">
+                
                 {intakes.length === 0 ? (
                     <div className="text-center py-8">
                         <p className="text-black mb-4">No intake items yet</p>
-                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
+                        <button onClick={() => setIsAddingIntake(true)} className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${getButtonStyle(false)}`}>
                             Create Your First Intake Item
                         </button>
                     </div>
                 ) : (
-                                            <div className="grid grid-cols-3 gap-2">
+                                            <div className="grid grid-cols-3 gap-3">
                             {intakes.map(intake => {
                                 const isSelected = selectedIntakeIds.includes(intake.id);
                                 return (
                                     <div key={intake.id} className="relative group">
                                         <button 
                                             onClick={() => handleToggleIntake(intake.id)} 
-                                            className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
-                                            style={getButtonStyle(isSelected)}
+                                            className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}
                                         >
                                             {intake.name}
                                         </button>
@@ -1163,35 +949,124 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                     </div>
                                 )
                             })}
-                            <button onClick={() => setIsAddingIntake(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Add New...</button>
+                            <button 
+                              onClick={isAddingIntake ? handleSaveInlineIntake : () => setIsAddingIntake(true)} 
+                              disabled={isAddingIntake && (!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit)}
+                              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingIntake ? ((!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit) ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                            >
+                              {isAddingIntake ? 'Save' : 'Other...'}
+                            </button>
+                        </div>
+                )}
+                {isAddingIntake && (
+                    <div className="grid grid-cols-3 gap-3 mt-3">
+                      {/* Name as editable div */}
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        onFocus={e => { if (!newIntakeName) e.currentTarget.textContent = ''; }}
+                        onBlur={e => setNewIntakeName(e.currentTarget.textContent || '')}
+                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                      >
+                        {newIntakeName || 'Name'}
+                      </div>
+                      {/* Type as custom dropdown */}
+                      <div className="relative w-full">
+                        <button
+                          type="button"
+                          onClick={() => setIsIntakeTypeOpen(o => !o)}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newIntakeType}
+                        </button>
+                        {isIntakeTypeOpen && (
+                          <ul className="absolute z-10 w-full bg-white border rounded-lg mt-1 max-h-40 overflow-auto">
+                            {Object.values(IntakeType).map(t => (
+                              <li
+                                key={t}
+                                onClick={() => { setNewIntakeType(t); setIsIntakeTypeOpen(false); }}
+                                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                              >
+                                {t}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      {/* Quantity as editable div */}
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        onFocus={e => { if (!newIntakeQuantity) e.currentTarget.textContent = ''; }}
+                        onBlur={e => setNewIntakeQuantity(e.currentTarget.textContent || '')}
+                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                      >
+                        {newIntakeQuantity || 'Quantity'}
+                      </div>
+                      {/* Unit as custom dropdown */}
+                      <div className="relative w-full">
+                        <button
+                          type="button"
+                          onClick={() => setIsIntakeUnitOpen(o => !o)}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newIntakeUnit || 'Unit'}
+                        </button>
+                        {isIntakeUnitOpen && (
+                          <ul className="absolute z-10 w-full bg-white border rounded-lg mt-1 max-h-40 overflow-auto">
+                            {Object.values(IntakeUnit).map(u => (
+                              <li
+                                key={u}
+                                onClick={() => { setNewIntakeUnit(u); setIsIntakeUnitOpen(false); }}
+                                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                              >
+                                {u}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      {/* Info as editable div */}
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        onFocus={e => { if (!newIntakeInfo) e.currentTarget.textContent = ''; }}
+                        onBlur={e => setNewIntakeInfo(e.currentTarget.textContent || '')}
+                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                      >
+                        {newIntakeInfo || 'Info'}
+                      </div>
                         </div>
                 )}
               </div>
               {selectedIntakeIds.length > 0 && (
-                <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
+                <div className="p-3 sm:p-4 space-y-3">
                   <DateTimeField label="Time of Intake (for all items)" value={intakeTime} onChange={setIntakeTime} />
                 </div>
               )}
             </>
           ) : mode === 'READING' ? (
             <>
-              <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
-                  {renderSectionHeader('Book')}
+              <div className="p-3 sm:p-4 space-y-3">
+                  
                   {readingObjects.length === 0 ? (
                       <div className="text-center py-8">
                           <p className="text-black mb-4">No books yet</p>
-                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
-                              Add Your First Book
+                          <button 
+                            onClick={isAddingReadingObject ? handleSaveInlineReadingObject : () => setIsAddingReadingObject(true)}
+                            disabled={isAddingReadingObject && !newReadingBookName.trim()}
+                            className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                          >
+                            {isAddingReadingObject ? 'Save Book' : 'Add Your First Book'}
                           </button>
                       </div>
                   ) : (
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-3">
                           {readingObjects.map(book => (
                               <div key={book.id} className="relative group">
                                   <button 
                                       onClick={() => setSelectedReadingObject(book)} 
-                                      className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
-                                      style={getButtonStyle(selectedReadingObject?.id === book.id)}
+                                      className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedReadingObject?.id === book.id)}`}
                                   >
                                       {book.bookName}
                                   </button>
@@ -1208,18 +1083,195 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   </button>
                               </div>
                           ))}
-                          <button onClick={() => setIsAddingReadingObject(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Other...</button>
+                          <button 
+                            onClick={isAddingReadingObject ? handleSaveInlineReadingObject : () => setIsAddingReadingObject(true)}
+                            disabled={isAddingReadingObject && !newReadingBookName.trim()}
+                            className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                          >
+                            {isAddingReadingObject ? 'Save' : 'Other...'}
+                          </button>
+                      </div>
+                  )}
+                  {isAddingReadingObject && (
+                      <div className="grid grid-cols-3 gap-3 mt-3">
+                        {/* Book Name as editable div */}
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          onFocus={e => { if (!newReadingBookName) e.currentTarget.textContent = ''; }}
+                          onBlur={e => setNewReadingBookName(e.currentTarget.textContent || '')}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newReadingBookName || 'Book Name'}
+                        </div>
+                        {/* Author as editable div */}
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          onFocus={e => { if (!newReadingAuthor) e.currentTarget.textContent = ''; }}
+                          onBlur={e => setNewReadingAuthor(e.currentTarget.textContent || '')}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newReadingAuthor || 'Author'}
+                        </div>
+                        {/* Year as editable div */}
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          onFocus={e => { if (!newReadingYear) e.currentTarget.textContent = ''; }}
+                          onBlur={e => setNewReadingYear(e.currentTarget.textContent || '')}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newReadingYear || 'Year'}
+                        </div>
+                        {/* Info as editable div */}
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          onFocus={e => { if (!newReadingInfo) e.currentTarget.textContent = ''; }}
+                          onBlur={e => setNewReadingInfo(e.currentTarget.textContent || '')}
+                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        >
+                          {newReadingInfo || 'Info'}
+                        </div>
                       </div>
                   )}
               </div>
               {selectedReadingObject && (
                   <>
-                    <div className="p-4 space-y-3">
-                      {renderSectionHeader('Reading Time')}
-                      <div className="flex gap-2">
-                        <DateTimeField label="Start Time" value={startTime} onChange={setStartTime} />
-                        <DateTimeField label="End Time" value={endTime} onChange={setEndTime} />
+                    <div className="p-3 sm:p-4 space-y-3">
+                      
+                      <div className="grid grid-cols-3 gap-3">
+                        <DateTimeButton 
+                          label="Start Time" 
+                          value={startTime} 
+                          onChange={setStartTime}
+                          isExpanded={expandedDateTimePicker === 'start'}
+                          onToggle={() => setExpandedDateTimePicker(expandedDateTimePicker === 'start' ? null : 'start')}
+                        />
+                        <DateTimeButton 
+                          label="End Time" 
+                          value={endTime} 
+                          onChange={setEndTime}
+                          isExpanded={expandedDateTimePicker === 'end'}
+                          onToggle={() => setExpandedDateTimePicker(expandedDateTimePicker === 'end' ? null : 'end')}
+                        />
+                        <button className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile btn-unselected">
+                          Note
+                        </button>
                       </div>
+                      
+                      {/* Inline Time/Date Pickers */}
+                      {expandedDateTimePicker && (
+                        <div className="grid grid-cols-3 gap-3 mt-3">
+                          {expandedDateTimePicker === 'start' && (
+                            <>
+                              <input
+                                type="time"
+                                value={startTime ? new Date(startTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5)}
+                                onChange={(e) => {
+                                  const currentDate = startTime ? new Date(startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                                  setStartTime(`${currentDate}T${e.target.value}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <input
+                                type="date"
+                                value={startTime ? new Date(startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const currentTime = startTime ? new Date(startTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5);
+                                  setStartTime(`${e.target.value}T${currentTime}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <div></div>
+                            </>
+                          )}
+                          {expandedDateTimePicker === 'end' && (
+                            <>
+                              <input
+                                type="time"
+                                value={endTime ? new Date(endTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5)}
+                                onChange={(e) => {
+                                  const currentDate = endTime ? new Date(endTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                                  setEndTime(`${currentDate}T${e.target.value}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <input
+                                type="date"
+                                value={endTime ? new Date(endTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const currentTime = endTime ? new Date(endTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5);
+                                  setEndTime(`${e.target.value}T${currentTime}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <div></div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {renderTrackerAndNotes()}
                   </>
@@ -1227,22 +1279,22 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             </>
           ) : mode === 'NOTE' ? (
             <>
-              <div className="p-4 space-y-3">
-                {renderSectionHeader('Note')}
+              <div className="p-3 sm:p-4 space-y-3">
+                
                 <InputField label="Title (Optional)" value={noteTitle} onChange={setNoteTitle} placeholder="e.g., Project Ideas" />
-                <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Write down your thoughts..." className="w-full h-32 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 resize-none" />
+                <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Write down your thoughts..." className="w-full h-32 bg-theme-surface text-theme-text p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border resize-none border border-theme-border" />
               </div>
-              <div className="p-4 space-y-3">
-                {renderSectionHeader('Relate to Activities (Optional)')}
+              <div className="p-3 sm:p-4 space-y-3">
+                
                 <div className="space-y-3">
                     {Object.entries(groupedActivities).map(([category, acts]) => (
                         <div key={category}>
                             <h4 className="font-bold text-indigo-400 mb-2 text-sm">{category}</h4>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-3">
                                 {acts.map(activity => {
                                     const isSelected = noteRelatedActivityIds.includes(activity.id);
                                     return (
-                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className="p-3 rounded-lg text-sm transition-colors text-center truncate border" style={getButtonStyle(isSelected)}>{activity.name}</button>
+                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}>{activity.name}</button>
                                     );
                                 })}
                             </div>
@@ -1256,15 +1308,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             <>
               {(mode === 'TIMER' || mode === 'RECORD') && (
             <>
-              <div className="p-4 space-y-3">
-                {renderSectionHeader('Activity Type')}
-                <div className="grid grid-cols-3 gap-2">
+              <div className="p-3 sm:p-4 space-y-3">
+                
+                                      <div className="grid grid-cols-3 gap-3">
                       {Object.values(ActivityCategory).map(cat => ( 
                         <button 
                           key={cat} 
                           onClick={() => { setSelectedCategory(cat); setSelectedActivity(null); }} 
-                          className="p-3 rounded-lg text-sm transition-colors text-center border"
-                          style={getButtonStyle(selectedCategory === cat)}
+                          className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedCategory === cat)}`}
                         >
                           {cat}
                         </button>
@@ -1272,23 +1323,26 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                 </div>
               </div>
               {selectedCategory && (
-                  <div className="p-4 space-y-3">
-                      {renderSectionHeader('Activity')}
+                  <div className="p-3 sm:p-4 space-y-3">
+                      
                       {filteredActivities.length === 0 ? (
                           <div className="text-center py-8">
                               <p className="text-black mb-4">No activities yet for {selectedCategory}</p>
-                                  <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
-                                  Create Your First Activity
+                                  <button 
+                                    onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)}
+                                    disabled={isAddingActivity && !newActivityName.trim()}
+                                    className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                                  >
+                                    {isAddingActivity ? 'Save Activity' : 'Create Your First Activity'}
                               </button>
                           </div>
                       ) : (
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-3 gap-3">
                               {filteredActivities.map(act => (
                                 <div key={act.id} className="relative group">
                                   <button 
                                     onClick={() => setSelectedActivity(act)} 
-                                        className="w-full p-3 rounded-lg text-sm transition-colors text-center truncate border"
-                                        style={getButtonStyle(selectedActivity?.id === act.id)}
+                                        className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedActivity?.id === act.id)}`}
                                   >
                                     {act.name}
                                   </button>
@@ -1305,7 +1359,57 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   </button>
                                 </div>
                               ))}
-                                  <button onClick={() => setIsAddingActivity(true)} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(false)}>Other...</button>
+                                  <button 
+                                onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)} 
+                                disabled={isAddingActivity && !newActivityName.trim()}
+                                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                              >
+                                {isAddingActivity ? 'Save' : 'Other...'}
+                              </button>
+                                                    </div>
+                      )}
+                      {isAddingActivity && (
+                          <div className="grid grid-cols-3 gap-3 mt-3">
+                            {/* Name as editable div */}
+                            <div
+                              contentEditable
+                              suppressContentEditableWarning
+                              onFocus={e => { if (!newActivityName) e.currentTarget.textContent = ''; }}
+                              onBlur={e => setNewActivityName(e.currentTarget.textContent || '')}
+                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                            >
+                              {newActivityName || 'Name'}
+                            </div>
+                            {/* Sub Activity as editable div */}
+                            <div
+                              contentEditable
+                              suppressContentEditableWarning
+                              onFocus={e => { if (!newActivitySubActivity) e.currentTarget.textContent = ''; }}
+                              onBlur={e => setNewActivitySubActivity(e.currentTarget.textContent || '')}
+                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                            >
+                              {newActivitySubActivity || 'Sub Activity'}
+                            </div>
+                            {/* Sub Sub Activity as editable div */}
+                            <div
+                              contentEditable
+                              suppressContentEditableWarning
+                              onFocus={e => { if (!newActivitySubSubActivity) e.currentTarget.textContent = ''; }}
+                              onBlur={e => setNewActivitySubSubActivity(e.currentTarget.textContent || '')}
+                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                            >
+                              {newActivitySubSubActivity || 'Sub Sub Activity'}
+                            </div>
+                            {/* Info as editable div */}
+                            <div
+                              contentEditable
+                              suppressContentEditableWarning
+                              onFocus={e => { if (!newActivityInfo) e.currentTarget.textContent = ''; }}
+                              onBlur={e => setNewActivityInfo(e.currentTarget.textContent || '')}
+                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                            >
+                              {newActivityInfo || 'Info'}
+                            </div>
                           </div>
                       )}
                   </div>
@@ -1314,102 +1418,209 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               )}
               {selectedActivity && mode === 'TIMER' && (
                 <>
-                  <div className="p-4 space-y-3">
-                      {renderSectionHeader('Timer Settings')}
-                      <div className="grid grid-cols-3 gap-2">
-                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'session')}>
-                              <span className="text-sm block">Session</span>
-                              <span className="font-bold text-lg">{formatDuration(sessionDuration)}</span>
+                  <div className="p-3 sm:p-4 space-y-3">
+                      
+                      <div className="grid grid-cols-3 gap-3">
+                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'session' || sessionDuration !== 5)}`}>
+                              {sessionDuration !== 5 ? `Session ${formatDuration(sessionDuration)}` : 'Session'}
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'break')}>
-                              <span className="text-sm block">Break</span>
-                              <span className="font-bold text-lg">{formatDuration(breakDuration)}</span>
+                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'break' || breakDuration !== 1)}`}>
+                              {breakDuration !== 1 ? `Break ${formatDuration(breakDuration)}` : 'Break'}
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className="p-2 rounded-lg text-center transition-colors flex flex-col justify-center items-center h-20 border" style={getButtonStyle(activeSlider === 'count')}>
-                              <span className="text-sm block">Sessions</span>
-                              <span className="font-bold text-lg">{sessionCount}</span>
+                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'count' || sessionCount !== 2)}`}>
+                              {sessionCount !== 2 ? `Sessions ${sessionCount}` : 'Sessions'}
                           </button>
                       </div>
                       {activeSlider === 'session' && <div className="pt-3"><Slider min={5} max={20} step={1} value={sessionDuration} onChange={setSessionDuration} label={formatDuration(sessionDuration)} /></div>}
                       {activeSlider === 'break' && <div className="pt-3"><Slider min={1} max={10} step={1} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
                       {activeSlider === 'count' && <div className="pt-3"><Slider min={1} max={10} step={1} value={sessionCount} onChange={setSessionCount} label={`${sessionCount} sessions`} /></div>}
                   </div>
-                  <div className="p-4 space-y-3">
-                    {renderSectionHeader('Trackers')}
-                    <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 sm:p-4 space-y-3">
+                    
+                                          <div className="grid grid-cols-3 gap-3">
                       {allTrackers.map(tracker => ( 
                         <button 
                           key={tracker.id} 
                           onClick={() => handleTrackerSelect(tracker.id)} 
-                          className="p-3 rounded-lg text-sm transition-colors text-center border"
-                          style={getButtonStyle(selectedTrackerId === tracker.id)}
+                          className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
                         >
                           {tracker.name}
                         </button>
                       ))}
                     </div>
                   </div>
-                  {selectedTrackerId && (<div className="p-4 space-y-3">
-                      {renderSectionHeader('Frequency')}
-                      <div className="grid grid-cols-3 gap-2">
-                        <button onClick={() => setTrackerFrequency('every_break')} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(trackerFrequency === 'every_break')}>Every Break</button>
-                        <button onClick={() => setTrackerFrequency('end_of_session')} className="p-3 rounded-lg text-sm transition-colors text-center border" style={getButtonStyle(trackerFrequency === 'end_of_session')}>End of Session</button>
-                        <div className="p-3 rounded-lg text-sm text-center border opacity-50" style={getContainerStyle()}>-</div>
+                  {selectedTrackerId && (<div className="p-3 sm:p-4 space-y-3">
+                      
+                      <div className="grid grid-cols-3 gap-3">
+                        <button onClick={() => setTrackerFrequency('every_break')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'every_break')}`}>Every Break</button>
+                        <button onClick={() => setTrackerFrequency('end_of_session')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'end_of_session')}`}>End of Session</button>
+                        <div className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center border opacity-50 bg-theme-surface border-theme-border">-</div>
                       </div>
                   </div>)}
-                  <div className="p-4 space-y-3">
-                      {renderSectionHeader('Sound Notifications')}
-                      <div className="p-3 rounded-lg border" style={getContainerStyle()}>
-                          <div className="flex items-center justify-between">
-                              <div>
-                                  <p className="text-white font-medium">Session & Break Sounds</p>
-                                  <p className="text-gray-400 text-sm">Play notification sounds when sessions and breaks end</p>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                  <button 
-                                      onClick={() => {
-                                          if (soundEnabled) {
-                                              const audio = new Audio('/sound.mp3');
-                                              audio.play().catch(console.warn);
-                                          }
-                                      }}
-                                      disabled={!soundEnabled}
-                                      className="p-2 rounded-lg transition-colors border"
-                                      style={getButtonStyle(false, !soundEnabled)}
-                                      title="Test sound"
-                                  >
-                                      🔊
-                                  </button>
+                  <div className="p-3 sm:p-4 space-y-3">
+                      <div className="grid grid-cols-3 gap-3">
                                   <button
                                       onClick={() => onSoundEnabledChange(!soundEnabled)}
-                                      className="px-3 py-1 rounded text-sm transition-colors border"
-                                      style={getButtonStyle(soundEnabled)}
+                              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(soundEnabled)}`}
                                   >
-                                      {soundEnabled ? '✓ Enabled' : '✗ Disabled'}
+                              {soundEnabled ? 'Sound Enabled' : 'Sound Disabled'}
                                   </button>
+                          <div></div>
+                          <div></div>
                               </div>
-                          </div>
-                      </div>
                   </div>
                 </>
               )}
               {selectedActivity && mode === 'RECORD' && (
                   <>
-                    <div className="p-4 space-y-3">
-                      {renderSectionHeader('Activity Time')}
-                      <div className="flex gap-2">
-                        <DateTimeField label="Start Time" value={startTime} onChange={setStartTime} />
-                        <DateTimeField label="End Time" value={endTime} onChange={setEndTime} />
+                    <div className="p-3 sm:p-4 space-y-3">
+                      
+                      <div className="grid grid-cols-3 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedDateTimePicker(expandedDateTimePicker === 'start' ? null : 'start')}
+                          className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'start' ? 'btn-selected' : 'btn-unselected'}`}
+                        >
+                          <div className="leading-tight">
+                            <div className="font-medium">{startTime ? new Date(startTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-xs opacity-75">{startTime ? new Date(startTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-') : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')}</div>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedDateTimePicker(expandedDateTimePicker === 'end' ? null : 'end')}
+                          className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'end' ? 'btn-selected' : 'btn-unselected'}`}
+                        >
+                          <div className="leading-tight">
+                            <div className="font-medium">{endTime ? new Date(endTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+                            <div className="text-xs opacity-75">{endTime ? new Date(endTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-') : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')}</div>
+                          </div>
+                        </button>
+                        <button className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile btn-unselected">
+                          Note
+                        </button>
                       </div>
+                      
+                      {/* Inline Time/Date Pickers */}
+                      {expandedDateTimePicker && (
+                        <div className="grid grid-cols-3 gap-3 mt-3">
+                          {expandedDateTimePicker === 'start' && (
+                            <>
+                              <input
+                                type="time"
+                                value={startTime ? new Date(startTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5)}
+                                onChange={(e) => {
+                                  const currentDate = startTime ? new Date(startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                                  setStartTime(`${currentDate}T${e.target.value}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <input
+                                type="date"
+                                value={startTime ? new Date(startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const currentTime = startTime ? new Date(startTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5);
+                                  setStartTime(`${e.target.value}T${currentTime}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <div></div>
+                            </>
+                          )}
+                          {expandedDateTimePicker === 'end' && (
+                            <>
+                              <input
+                                type="time"
+                                value={endTime ? new Date(endTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5)}
+                                onChange={(e) => {
+                                  const currentDate = endTime ? new Date(endTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+                                  setEndTime(`${currentDate}T${e.target.value}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <input
+                                type="date"
+                                value={endTime ? new Date(endTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                                onChange={(e) => {
+                                  const currentTime = endTime ? new Date(endTime).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5);
+                                  setEndTime(`${e.target.value}T${currentTime}`);
+                                }}
+                                style={{
+                                  appearance: 'none',
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  backgroundColor: 'var(--background-unselected)',
+                                  color: 'var(--text-color-unselected)',
+                                  border: 'var(--stroke-weight-unselected) solid var(--stroke-color-unselected)',
+                                  borderRadius: 'var(--radius-lg)',
+                                  padding: 'var(--btn-padding)',
+                                  transition: 'var(--transition-fast)',
+                                  fontFamily: 'inherit',
+                                  fontSize: 'inherit',
+                                  textAlign: 'center',
+                                  width: '100%'
+                                }}
+                                className="text-xs sm:text-sm md:text-base"
+                              />
+                              <div></div>
+                            </>
+                          )}
+                      </div>
+                      )}
                     </div>
                     {renderTrackerAndNotes()}
                   </>
               )}
               {mode === 'DATA' && (
                 <>
-                  <div className="p-4 space-y-3">
+                  <div className="p-3 sm:p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      {renderSectionHeader('Data Management')}
+                      
                       <button 
                         onClick={() => {
                           if (logs.length === 0) return;
@@ -1431,8 +1642,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                             alert("Could not export logs. See console for details.");
                           }
                         }}
-                        className="px-4 py-2 rounded-lg font-medium transition-colors border"
-                        style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}
+                        className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border btn-mobile btn-selected`}
                       >
                         Download All Data
                       </button>
@@ -1469,30 +1679,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           )}
               {mode === 'SETTINGS' && (
                 <>
-                  <div className="p-4 space-y-3">
-                    {renderSectionHeader('Settings')}
+                  <div className="p-3 sm:p-4 space-y-3">
                     
-                    {/* Settings Sub-Navigation */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <button 
-                        onClick={() => setSettingsSubMode('USER')} 
-                        className="p-3 rounded-lg font-medium transition-colors text-sm border"
-                        style={getButtonStyle(settingsSubMode === 'USER')}
-                      >
-                        User
-                      </button>
-                      <button 
-                        onClick={() => setSettingsSubMode('APPLICATION_LOOK')} 
-                        className="p-3 rounded-lg font-medium transition-colors text-sm border"
-                        style={getButtonStyle(settingsSubMode === 'APPLICATION_LOOK')}
-                      >
-                        Application Look
-                      </button>
-                    </div>
+                    
+
 
                     {/* User Settings Section */}
-                    {settingsSubMode === 'USER' && (
-                      <div className="p-4 rounded-lg space-y-4 border" style={getContainerStyle()}>
+                    <div className="p-4 rounded-lg space-y-4 border bg-theme-surface border-theme-border">
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-2">User Information</h3>
                           <div className="space-y-2">
@@ -1505,263 +1698,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           <h3 className="text-lg font-semibold text-white mb-2">Account Actions</h3>
                           <button 
                             onClick={onLogout}
-                            className="w-full px-4 py-3 rounded-lg font-medium transition-colors border"
-                            style={{ backgroundColor: '#dc2626', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}
+                            className="w-full px-4 py-3 rounded-lg font-medium transition-colors border bg-red-600 text-white border-white"
                           >
                             Logout
                           </button>
                         </div>
                       </div>
-                    )}
 
-                    {/* Application Look Settings Section */}
-                    {settingsSubMode === 'APPLICATION_LOOK' && (
-                      <div className="p-4 rounded-lg space-y-6 border" style={getContainerStyle()}>
-                        {/* Theme Presets */}
-                        <div>
-                          <h3 className="text-lg font-semibold text-white mb-3">Theme</h3>
-                          <div className="grid grid-cols-2 gap-3">
-                            {Object.entries(themePresets).map(([key, preset]) => (
-                              <button
-                                key={key}
-                                onClick={() => handleThemePreset(key as keyof typeof themePresets)}
-                                className="p-4 rounded-lg border-2 transition-colors text-center"
-                                style={{
-                                  backgroundColor: preset.colors.surface,
-                                  color: preset.colors.text,
-                                  borderColor: preset.colors.primary
-                                }}
-                              >
-                                <div className="text-base font-medium">{preset.name}</div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
 
-                        {/* Color Customization */}
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-3">Custom Colors</h3>
-                          <div className="space-y-4">
-                            <ColorPicker 
-                              label="Background" 
-                              value={appColors.background} 
-                              onChange={(value) => handleColorChange('background', value)} 
-                            />
-                            <ColorPicker 
-                              label="Surface" 
-                              value={appColors.surface} 
-                              onChange={(value) => handleColorChange('surface', value)} 
-                            />
-                            <ColorPicker 
-                              label="Primary" 
-                              value={appColors.primary} 
-                              onChange={(value) => handleColorChange('primary', value)} 
-                            />
-                            <ColorPicker 
-                              label="Text" 
-                              value={appColors.text} 
-                              onChange={(value) => handleColorChange('text', value)} 
-                            />
-                            <ColorPicker 
-                              label="Accent" 
-                              value={appColors.accent} 
-                              onChange={(value) => handleColorChange('accent', value)} 
-                            />
-                          </div>
-                        </div>
-
-                        {/* Button Styling */}
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-3">Button Styling</h3>
-                          
-                          {/* Unselected Buttons */}
-                          <div className="mb-6">
-                            <h4 className="text-md font-medium text-white mb-3">Unselected Buttons</h4>
-                            <div className="space-y-3">
-                              <ColorPicker 
-                                label="Background" 
-                                value={appColors.buttonUnselected.background} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonUnselected: { ...prev.buttonUnselected, background: value }
-                                }))} 
-                              />
-                              <ColorPicker 
-                                label="Stroke Color" 
-                                value={appColors.buttonUnselected.stroke} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonUnselected: { ...prev.buttonUnselected, stroke: value }
-                                }))} 
-                              />
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-white">Stroke Weight</span>
-                                <input
-                                  type="range"
-                                  min="1"
-                                  max="5"
-                                  value={appColors.buttonUnselected.strokeWeight}
-                                  onChange={(e) => setAppColors(prev => ({ 
-                                    ...prev, 
-                                    buttonUnselected: { ...prev.buttonUnselected, strokeWeight: parseInt(e.target.value) }
-                                  }))}
-                                  className="w-20"
-                                />
-                                <span className="text-sm text-white w-8">{appColors.buttonUnselected.strokeWeight}px</span>
-                              </div>
-                              <ColorPicker 
-                                label="Text Color" 
-                                value={appColors.buttonUnselected.text} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonUnselected: { ...prev.buttonUnselected, text: value }
-                                }))} 
-                              />
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-white">Font Weight</span>
-                                <select
-                                  value={appColors.buttonUnselected.fontWeight}
-                                  onChange={(e) => setAppColors(prev => ({ 
-                                    ...prev, 
-                                    buttonUnselected: { ...prev.buttonUnselected, fontWeight: e.target.value }
-                                  }))}
-                                  className="px-2 py-1 bg-gray-700 text-white text-xs rounded border border-gray-600"
-                                >
-                                  <option value="normal">Normal</option>
-                                  <option value="bold">Bold</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Selected Buttons */}
-                          <div>
-                            <h4 className="text-md font-medium text-white mb-3">Selected Buttons</h4>
-                            <div className="space-y-3">
-                              <ColorPicker 
-                                label="Background" 
-                                value={appColors.buttonSelected.background} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonSelected: { ...prev.buttonSelected, background: value }
-                                }))} 
-                              />
-                              <ColorPicker 
-                                label="Stroke Color" 
-                                value={appColors.buttonSelected.stroke} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonSelected: { ...prev.buttonSelected, stroke: value }
-                                }))} 
-                              />
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-white">Stroke Weight</span>
-                                <input
-                                  type="range"
-                                  min="1"
-                                  max="5"
-                                  value={appColors.buttonSelected.strokeWeight}
-                                  onChange={(e) => setAppColors(prev => ({ 
-                                    ...prev, 
-                                    buttonSelected: { ...prev.buttonSelected, strokeWeight: parseInt(e.target.value) }
-                                  }))}
-                                  className="w-20"
-                                />
-                                <span className="text-sm text-white w-8">{appColors.buttonSelected.strokeWeight}px</span>
-                              </div>
-                              <ColorPicker 
-                                label="Text Color" 
-                                value={appColors.buttonSelected.text} 
-                                onChange={(value) => setAppColors(prev => ({ 
-                                  ...prev, 
-                                  buttonSelected: { ...prev.buttonSelected, text: value }
-                                }))} 
-                              />
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-white">Font Weight</span>
-                                <select
-                                  value={appColors.buttonSelected.fontWeight}
-                                  onChange={(e) => setAppColors(prev => ({ 
-                                    ...prev, 
-                                    buttonSelected: { ...prev.buttonSelected, fontWeight: e.target.value }
-                                  }))}
-                                  className="px-2 py-1 bg-gray-700 text-white text-xs rounded border border-gray-600"
-                                >
-                                  <option value="normal">Normal</option>
-                                  <option value="bold">Bold</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Live Preview */}
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-3">Live Preview</h3>
-                          <div 
-                            className="p-4 rounded-lg border-2 border-gray-600"
-                            style={{ backgroundColor: appColors.background }}
-                          >
-                            <div className="space-y-4">
-                              <div 
-                                className="p-3 rounded-lg"
-                                style={{ backgroundColor: appColors.surface }}
-                              >
-                                <h4 style={{ color: appColors.text }} className="font-semibold mb-3">Button Hierarchy</h4>
-                                <div className="space-y-2">
-                                  <button 
-                                    className="px-4 py-2 rounded-lg transition-colors"
-                                    style={getButtonStyle(false)}
-                                  >
-                                    Unselected Button
-                                  </button>
-                                  <button 
-                                    className="px-4 py-2 rounded-lg transition-colors"
-                                    style={getButtonStyle(true)}
-                                  >
-                                    Selected Button
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span style={{ color: appColors.text }} className="text-sm">Accent color:</span>
-                                <div 
-                                  className="w-6 h-6 rounded"
-                                  style={{ backgroundColor: appColors.accent }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Sound Settings */}
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-2">Sound Settings</h3>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-300">Timer Sound</span>
-                            <button 
-                              onClick={() => onSoundEnabledChange(!soundEnabled)}
-                              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                                soundEnabled 
-                                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                                  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                              }`}
-                            >
-                              {soundEnabled ? 'Enabled' : 'Disabled'}
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {/* App Information */}
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-2">App Information</h3>
-                          <div className="space-y-2 text-sm text-gray-400">
-                            <p>Version: 1.0.0</p>
-                            <p>Productivity Timer</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </>
               )}
@@ -1771,26 +1715,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         </div>
       </main>
 
-      <footer 
-        className="p-2 sm:p-4 border-t fixed bottom-0 left-0 right-0 z-10 pb-safe"
-        style={{ 
-          backgroundColor: appColors.background,
-          borderColor: appColors.surface,
-          paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))'
-        }}
-      >
-        <button 
-          onClick={handleAction} 
-          disabled={actionButtonDisabled} 
-          className="w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-colors disabled:cursor-not-allowed border min-h-[44px]"
-          style={getButtonStyle(false, actionButtonDisabled)}
-        >
-            {actionButtonText}
-        </button>
+            <footer className="border-t fixed bottom-0 left-0 right-0 z-10 bg-theme-background border-theme-border" style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}>
+        <div className="p-3 sm:p-4">
+            <button 
+              onClick={handleAction} 
+              disabled={actionButtonDisabled} 
+            className={`w-full p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] btn-mobile ${actionButtonDisabled ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected'}`}
+            >
+              {actionButtonText}
+            </button>
+        </div>
       </footer>
-      {isAddingActivity && selectedCategory && <AddActivityModal category={selectedCategory} onClose={() => setIsAddingActivity(false)} onSave={handleAddNewActivityAndSelect} />}
-      {isAddingIntake && <AddIntakeModal onClose={() => setIsAddingIntake(false)} onSave={handleAddNewIntakeAndSelect} />}
-      {isAddingReadingObject && <AddReadingModal onClose={() => setIsAddingReadingObject(false)} onSave={handleAddNewReadingObjectAndSelect} />}
+
     </div>
     </>
   );

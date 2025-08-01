@@ -101,13 +101,27 @@ const InputField: React.FC<{
     type?: string;
 }> = ({ label, value, onChange, placeholder, type = 'text' }) => (
     <div>
-        <label className="block text-sm font-medium text-gray-400 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
         <input
             type={type}
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
+            style={{
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                borderColor: '#d1d5db',
+                outline: 'none'
+            }}
+            onFocus={(e) => {
+                e.target.style.borderColor = '#9ca3af';
+                e.target.style.boxShadow = '0 0 0 2px #9ca3af';
+            }}
+            onBlur={(e) => {
+                e.target.style.borderColor = '#d1d5db';
+                e.target.style.boxShadow = 'none';
+            }}
         />
     </div>
 );
@@ -118,12 +132,26 @@ const DateTimeField: React.FC<{
     onChange: (value: string) => void;
 }> = ({ label, value, onChange }) => (
     <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-400 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
         <input
             type="datetime-local"
             value={value}
             onChange={e => onChange(e.target.value)}
-            className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
+            style={{
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                borderColor: '#d1d5db',
+                outline: 'none'
+            }}
+            onFocus={(e) => {
+                e.target.style.borderColor = '#9ca3af';
+                e.target.style.boxShadow = '0 0 0 2px #9ca3af';
+            }}
+            onBlur={(e) => {
+                e.target.style.borderColor = '#d1d5db';
+                e.target.style.boxShadow = 'none';
+            }}
         />
     </div>
 );
@@ -145,16 +173,17 @@ const AddActivityModal: React.FC<{
   };
 
   return (
-    <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-      <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
+        <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
         <h3 className="text-lg font-bold text-center">Add New Activity to "{category}"</h3>
         <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Project Phoenix" />
         <InputField label="Sub-Activity" value={subActivity} onChange={setSubActivity} placeholder="e.g., UI Design" />
         <InputField label="Sub-Sub-Activity" value={subSubActivity} onChange={setSubSubActivity} placeholder="e.g., Login Screen" />
         <InputField label="Info" value={info} onChange={setInfo} placeholder="e.g., Focus on component library" />
-        <div className="flex gap-2 sm:gap-4 pt-2">
-            <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-            <button onClick={handleSave} disabled={!name.trim()} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: !name.trim() ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+        <div className="flex gap-3 pt-4">
+            <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+            <button onClick={handleSave} disabled={!name.trim()} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: !name.trim() ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: !name.trim() ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
         </div>
       </div>
     </div>
@@ -184,30 +213,59 @@ const AddIntakeModal: React.FC<{
       }
     };
   
-    return (
-      <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-        <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-          <h3 className="text-lg font-bold text-center">Add New Intake Item</h3>
+        return (
+      <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
+        <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
+          <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
+            <h3 className="text-lg font-bold text-center">Add New Intake Item</h3>
           <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Coffee" />
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Type</label>
-            <select value={type} onChange={e => setType(e.target.value as IntakeType)} className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
+            <select value={type} onChange={e => setType(e.target.value as IntakeType)} className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
+                style={{
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    borderColor: '#d1d5db',
+                    outline: 'none'
+                }}
+                onFocus={(e) => {
+                    e.target.style.borderColor = '#9ca3af';
+                    e.target.style.boxShadow = '0 0 0 2px #9ca3af';
+                }}
+                onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = 'none';
+                }}>
                 {Object.values(IntakeType).map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., 200mg Caffeine" />
           <InputField label="Default Quantity" value={defaultQuantity} onChange={setDefaultQuantity} placeholder="e.g., 1" type="number" />
            <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Default Unit</label>
-            <select value={defaultUnit} onChange={e => setDefaultUnit(e.target.value as IntakeUnit)} className="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label className="block text-sm font-medium text-gray-600 mb-1">Default Unit</label>
+            <select value={defaultUnit} onChange={e => setDefaultUnit(e.target.value as IntakeUnit)} className="w-full bg-white text-black p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 modal-input"
+                style={{
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    borderColor: '#d1d5db',
+                    outline: 'none'
+                }}
+                onFocus={(e) => {
+                    e.target.style.borderColor = '#9ca3af';
+                    e.target.style.boxShadow = '0 0 0 2px #9ca3af';
+                }}
+                onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = 'none';
+                }}>
                 <option value="" disabled>Select a unit</option>
                 {Object.values(IntakeUnit).map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
 
-          <div className="flex gap-2 sm:gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+          <div className="flex gap-3 pt-4">
+              <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: (!name.trim() || !defaultQuantity || !defaultUnit) ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>
@@ -234,17 +292,18 @@ const AddReadingModal: React.FC<{
       }
     };
   
-    return (
-      <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-        <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-          <h3 className="text-lg font-bold text-center">Add New Book</h3>
+        return (
+      <div className="fixed inset-0 bg-white flex items-end justify-center z-50 pb-safe" onClick={onClose}>
+        <div className="bg-white rounded-t-3xl p-4 sm:p-6 space-y-4 w-full max-w-md max-h-[85vh] overflow-y-auto border border-gray-300 transform transition-all duration-300 ease-out" onClick={e => e.stopPropagation()}>
+          <div className="w-12 h-1 bg-gray-400 rounded-full mx-auto mb-2"></div>
+            <h3 className="text-lg font-bold text-center">Add New Book</h3>
           <InputField label="Book Name*" value={bookName} onChange={setBookName} placeholder="e.g., The Midnight Library" />
           <InputField label="Author*" value={author} onChange={setAuthor} placeholder="e.g., Matt Haig" />
           <InputField label="Year Published" value={year} onChange={setYear} placeholder="e.g., 2020" type="number" />
           <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., Fiction, Fantasy" />
-          <div className="flex gap-2 sm:gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+          <div className="flex gap-3 pt-4">
+              <button onClick={onClose} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: '#ffffff', color: '#000000', borderColor: '#000000', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="flex-1 p-3 rounded-xl font-medium border min-h-[48px] transition-colors" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#ffffff' : '#b8b8b8', color: '#000000', borderColor: '#000000', borderWidth: (!bookName.trim() || !author.trim()) ? '1px' : '2px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>
@@ -556,7 +615,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
 
 const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledChange, userEmail, ...props }) => {
   const { onStartTimer, onLogActivity, onLogIntake, onLogReading, onLogNote, activities, onAddNewActivity, onDeleteActivity, intakes, onAddNewIntake, onDeleteIntake, readingObjects, onAddNewReadingObject, onDeleteReadingObject, logs, onDeleteSessionLog, onDeleteIntakeLog, onDeleteReadingLog, onDeleteNoteLog, onLogout } = props;
-  const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE' | 'DATA' | 'SETTINGS'>('TIMER');
+  const [mode, setMode] = useState<'TIMER' | 'RECORD' | 'INTAKE' | 'READING' | 'NOTE' | 'DATA' | 'SETTINGS' | null>(null);
   const [settingsSubMode, setSettingsSubMode] = useState<'USER' | 'APPLICATION_LOOK'>('USER');
   
   // Color customization state
@@ -970,7 +1029,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         {renderOptionalTrackers()}
         <div className="p-4 space-y-3">
             {renderSectionHeader('Notes (Optional)')}
-            <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add notes about this session..." className="w-full h-24 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+            <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add notes about this session..." className="w-full h-24 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 resize-none" />
         </div>
       </>
   );
@@ -978,6 +1037,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   return (
     <>
       <GlobalStyles appColors={appColors} />
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .modal-input {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-color: #d1d5db !important;
+            outline: none !important;
+          }
+          .modal-input:focus {
+            border-color: #9ca3af !important;
+            box-shadow: 0 0 0 2px #9ca3af !important;
+          }
+        `
+      }} />
       <div 
         className="flex flex-col min-h-screen relative"
         style={{ 
@@ -996,13 +1069,15 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <button 
                     onClick={() => setMode('TIMER')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] ${mode === 'TIMER' ? 'btn-selected' : 'btn-unselected'}`}
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
+                    style={getButtonStyle(mode === 'TIMER')}
                   >
                     Timer
                   </button>
                   <button 
                     onClick={() => setMode('RECORD')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] ${mode === 'RECORD' ? 'btn-selected' : 'btn-unselected'}`}
+                    className="p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px]"
+                    style={getButtonStyle(mode === 'RECORD')}
                   >
                     Record
                   </button>
@@ -1048,14 +1123,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               </div>
           </div>
           
+
+          
           {mode === 'INTAKE' ? (
             <>
               <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
                 {renderSectionHeader('Select Intake Item(s)')}
                 {intakes.length === 0 ? (
                     <div className="text-center py-8">
-                        <p className="text-gray-400 mb-4">No intake items yet</p>
-                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
+                        <p className="text-black mb-4">No intake items yet</p>
+                        <button onClick={() => setIsAddingIntake(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
                             Create Your First Intake Item
                         </button>
                     </div>
@@ -1102,8 +1179,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   {renderSectionHeader('Book')}
                   {readingObjects.length === 0 ? (
                       <div className="text-center py-8">
-                          <p className="text-gray-400 mb-4">No books yet</p>
-                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
+                          <p className="text-black mb-4">No books yet</p>
+                          <button onClick={() => setIsAddingReadingObject(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
                               Add Your First Book
                           </button>
                       </div>
@@ -1153,7 +1230,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               <div className="p-4 space-y-3">
                 {renderSectionHeader('Note')}
                 <InputField label="Title (Optional)" value={noteTitle} onChange={setNoteTitle} placeholder="e.g., Project Ideas" />
-                <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Write down your thoughts..." className="w-full h-32 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />
+                <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Write down your thoughts..." className="w-full h-32 bg-gray-700 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 resize-none" />
               </div>
               <div className="p-4 space-y-3">
                 {renderSectionHeader('Relate to Activities (Optional)')}
@@ -1199,8 +1276,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                       {renderSectionHeader('Activity')}
                       {filteredActivities.length === 0 ? (
                           <div className="text-center py-8">
-                              <p className="text-gray-400 mb-4">No activities yet for {selectedCategory}</p>
-                                  <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 rounded-lg font-medium border" style={{ backgroundColor: '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>
+                              <p className="text-black mb-4">No activities yet for {selectedCategory}</p>
+                                  <button onClick={() => setIsAddingActivity(true)} className="px-6 py-3 rounded-lg font-medium border" style={getButtonStyle(false)}>
                                   Create Your First Activity
                               </button>
                           </div>

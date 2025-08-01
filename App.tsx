@@ -73,14 +73,14 @@ const App: React.FC = () => {
     try {
       validateEnvironment();
       initializeErrorReporting();
-      console.log('Sterodoro initialized successfully');
+      console.log('Productivity Timer initialized successfully');
       
       // Request notification permission for timer alerts
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
       }
     } catch (error) {
-      console.error('Failed to initialize Sterodoro:', error);
+      console.error('Failed to initialize Productivity Timer:', error);
     }
   }, []);
 
@@ -113,26 +113,26 @@ const App: React.FC = () => {
   const [isFinalTracking, setIsFinalTracking] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('sterodoro-sound-enabled');
+    const saved = localStorage.getItem('productivity-timer-sound-enabled');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
   useEffect(() => {
     try {
       // Load session logs
-      const savedSessionLogs = localStorage.getItem('sterodoro-activity-logs');
+      const savedSessionLogs = localStorage.getItem('productivity-timer-activity-logs');
       if (savedSessionLogs) setSessionLogs(JSON.parse(savedSessionLogs));
       
       // Load intake logs
-      const savedIntakeLogs = localStorage.getItem('sterodoro-intake-logs');
+      const savedIntakeLogs = localStorage.getItem('productivity-timer-intake-logs');
       if (savedIntakeLogs) setIntakeLogs(JSON.parse(savedIntakeLogs));
       
       // Load reading logs
-      const savedReadingLogs = localStorage.getItem('sterodoro-reading-logs');
+      const savedReadingLogs = localStorage.getItem('productivity-timer-reading-logs');
       if (savedReadingLogs) setReadingLogs(JSON.parse(savedReadingLogs));
 
       // Load note logs
-      const savedNoteLogs = localStorage.getItem('sterodoro-note-logs');
+      const savedNoteLogs = localStorage.getItem('productivity-timer-note-logs');
       if (savedNoteLogs) setNoteLogs(JSON.parse(savedNoteLogs));
     } catch (error) {
       console.error("Failed to load data from local storage", error);
@@ -141,7 +141,7 @@ const App: React.FC = () => {
 
   // Save sound setting when it changes
   useEffect(() => {
-    localStorage.setItem('sterodoro-sound-enabled', JSON.stringify(soundEnabled));
+    localStorage.setItem('productivity-timer-sound-enabled', JSON.stringify(soundEnabled));
   }, [soundEnabled]);
 
   // Load custom objects from Supabase when user is authenticated
@@ -301,7 +301,7 @@ const App: React.FC = () => {
       setSessionLogs(prevLogs => {
           const updatedLogs = [...prevLogs, newLog];
           try {
-              localStorage.setItem('sterodoro-activity-logs', JSON.stringify(updatedLogs));
+              localStorage.setItem('productivity-timer-activity-logs', JSON.stringify(updatedLogs));
           } catch (error) {
               console.error("Failed to save session logs to local storage", error);
           }
@@ -602,7 +602,7 @@ const App: React.FC = () => {
     setIntakeLogs(prevLogs => {
         const updatedLogs = [...prevLogs, ...newLogs];
         try {
-            localStorage.setItem('sterodoro-intake-logs', JSON.stringify(updatedLogs));
+            localStorage.setItem('productivity-timer-intake-logs', JSON.stringify(updatedLogs));
         } catch (error) {
             console.error("Failed to save intake logs to local storage", error);
         }
@@ -672,7 +672,7 @@ const App: React.FC = () => {
       setReadingLogs(prevLogs => {
           const updatedLogs = [...prevLogs, newLog];
           try {
-              localStorage.setItem('sterodoro-reading-logs', JSON.stringify(updatedLogs));
+              localStorage.setItem('productivity-timer-reading-logs', JSON.stringify(updatedLogs));
           } catch (error) {
               console.error("Failed to save reading logs to local storage", error);
           }
@@ -719,7 +719,7 @@ const App: React.FC = () => {
     setNoteLogs(prevLogs => {
         const updatedLogs = [...prevLogs, newLog];
         try {
-            localStorage.setItem('sterodoro-note-logs', JSON.stringify(updatedLogs));
+            localStorage.setItem('productivity-timer-note-logs', JSON.stringify(updatedLogs));
         } catch (error) {
             console.error("Failed to save note logs to local storage", error);
         }

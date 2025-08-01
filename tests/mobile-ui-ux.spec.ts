@@ -1,26 +1,22 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './auth-helper';
 
 // Mobile UI/UX Test Suite for Productivity Timer App
 // Tests all critical flows at 375px viewport (iPhone SE)
 
 test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to the app and wait for it to load
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for the main navigation to be visible
-    await page.waitForSelector('button:has-text("Timer")');
+  test.beforeEach(async ({ authenticatedPage }) => {
+    // Use the authenticated page fixture
+    // authenticatedPage is already authenticated and ready to use
   });
 
-  test('Main Navigation - All buttons visible and properly sized', async ({ page }) => {
+  test('Main Navigation - All buttons visible and properly sized', async ({ authenticatedPage }) => {
     // Check that all main navigation buttons are visible and properly sized
     const navigationButtons = [
       'Timer', 'Record', 'Intake', 'Reading', 'Note', 'Data', 'Settings'
     ];
 
     for (const buttonText of navigationButtons) {
-      const button = page.locator(`button:has-text("${buttonText}")`);
+      const button = authenticatedPage.locator(`.grid button:has-text("${buttonText}")`);
       
       // Check button is visible
       await expect(button).toBeVisible();
@@ -31,26 +27,26 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
       expect(buttonBox?.height).toBeGreaterThanOrEqual(44);
       
       // Check button is within viewport
-      const viewport = page.viewportSize();
+      const viewport = authenticatedPage.viewportSize();
       expect(buttonBox?.x).toBeGreaterThanOrEqual(0);
       expect(buttonBox?.x + (buttonBox?.width || 0)).toBeLessThanOrEqual(viewport?.width || 375);
     }
 
     // Check grid layout is properly spaced
-    const gridContainer = page.locator('.grid.grid-cols-3');
+    const gridContainer = authenticatedPage.locator('.grid.grid-cols-3:has(button:has-text("Timer"))');
     await expect(gridContainer).toBeVisible();
   });
 
-  test('No horizontal scrolling or overflow', async ({ page }) => {
-    // Check that the page doesn't have horizontal scroll
-    const body = page.locator('body');
+  test('No horizontal scrolling or overflow', async ({ authenticatedPage }) => {
+          // Check that the page doesn't have horizontal scroll
+      const body = authenticatedPage.locator('body');
     const bodyBox = await body.boundingBox();
-    const viewport = page.viewportSize();
+    const viewport = authenticatedPage.viewportSize();
     
     expect(bodyBox?.width).toBeLessThanOrEqual(viewport?.width || 375);
     
     // Check for any elements that might cause horizontal overflow
-    const allElements = page.locator('*');
+    const allElements = authenticatedPage.locator('*');
     const count = await allElements.count();
     
     for (let i = 0; i < Math.min(count, 100); i++) {
@@ -62,18 +58,41 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Timer Mode - Complete flow', async ({ page }) => {
+  test('Timer Mode - Complete flow', async ({ authenticatedPage }) => {
     // Navigate to Timer mode
-    await page.click('button:has-text("Timer")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Timer")');
+    await authenticatedPage.waitForTimeout(500);
 
-    // Check timer configuration is visible
-    await expect(page.locator('text=Session Duration')).toBeVisible();
-    await expect(page.locator('text=Break Duration')).toBeVisible();
-    await expect(page.locator('text=Session Count')).toBeVisible();
+    // Check activity type selection is visible first
+    await expect(authenticatedPage.locator('text=Activity Type')).toBeVisible();
+    
+    // Select an activity category (Work, Health, Social, Personal)
+    await authenticatedPage.click('button:has-text("Work")');
+    await authenticatedPage.waitForTimeout(500);
+    
+    // If no activities exist, create one
+    const createButton = authenticatedPage.locator('button:has-text("Create Your First Activity")');
+    if (await createButton.isVisible()) {
+      await createButton.click();
+      await authenticatedPage.waitForTimeout(500);
+      
+      // Fill in activity details
+      await authenticatedPage.fill('input[placeholder="Activity name"]', 'Test Activity');
+      await authenticatedPage.click('button:has-text("Save")');
+      await authenticatedPage.waitForTimeout(500);
+    } else {
+      // Select existing activity
+      await authenticatedPage.click('.grid button:has-text("Other...")');
+      await authenticatedPage.waitForTimeout(500);
+    }
+    
+    // Now check timer configuration is visible
+    await expect(authenticatedPage.locator('text=Session Duration')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Break Duration')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Session Count')).toBeVisible();
 
     // Check sliders are properly sized
-    const sliders = page.locator('input[type="range"]');
+    const sliders = authenticatedPage.locator('input[type="range"]');
     const sliderCount = await sliders.count();
     expect(sliderCount).toBeGreaterThan(0);
 
@@ -84,27 +103,49 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
 
     // Check activity selection is visible
-    await expect(page.locator('text=Activity Type')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Activity Type')).toBeVisible();
     
     // Check action button is properly sized
-    const actionButton = page.locator('footer button');
+    const actionButton = authenticatedPage.locator('footer button');
     await expect(actionButton).toBeVisible();
     const buttonBox = await actionButton.boundingBox();
     expect(buttonBox?.height).toBeGreaterThanOrEqual(44);
   });
 
-  test('Record Mode - Activity tracking flow', async ({ page }) => {
+  test('Record Mode - Activity tracking flow', async ({ authenticatedPage }) => {
     // Navigate to Record mode
-    await page.click('button:has-text("Record")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Record")');
+    await authenticatedPage.waitForTimeout(500);
 
-    // Check record configuration is visible
-    await expect(page.locator('text=Start Time')).toBeVisible();
-    await expect(page.locator('text=End Time')).toBeVisible();
-    await expect(page.locator('text=Activity Type')).toBeVisible();
+    // Check activity type selection is visible first
+    await expect(authenticatedPage.locator('text=Activity Type')).toBeVisible();
+    
+    // Select an activity category
+    await authenticatedPage.click('button:has-text("Work")');
+    await authenticatedPage.waitForTimeout(500);
+    
+    // If no activities exist, create one
+    const createButton = authenticatedPage.locator('button:has-text("Create Your First Activity")');
+    if (await createButton.isVisible()) {
+      await createButton.click();
+      await authenticatedPage.waitForTimeout(500);
+      
+      // Fill in activity details
+      await authenticatedPage.fill('input[placeholder="Activity name"]', 'Test Activity');
+      await authenticatedPage.click('button:has-text("Save")');
+      await authenticatedPage.waitForTimeout(500);
+    } else {
+      // Select existing activity
+      await authenticatedPage.click('.grid button:has-text("Other...")');
+      await authenticatedPage.waitForTimeout(500);
+    }
+    
+    // Now check record configuration is visible
+    await expect(authenticatedPage.locator('text=Start Time')).toBeVisible();
+    await expect(authenticatedPage.locator('text=End Time')).toBeVisible();
 
     // Check datetime inputs are properly sized
-    const datetimeInputs = page.locator('input[type="datetime-local"]');
+    const datetimeInputs = authenticatedPage.locator('input[type="datetime-local"]');
     const inputCount = await datetimeInputs.count();
     expect(inputCount).toBeGreaterThan(0);
 
@@ -115,81 +156,82 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Intake Mode - Item selection flow', async ({ page }) => {
+  test('Intake Mode - Item selection flow', async ({ authenticatedPage }) => {
     // Navigate to Intake mode
-    await page.click('button:has-text("Intake")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Intake")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Check intake section is visible
-    await expect(page.locator('text=Select Intake Item(s)')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Select Intake Item(s)')).toBeVisible();
 
     // Check "Create Your First Intake Item" button if no items exist
-    const createButton = page.locator('button:has-text("Create Your First Intake Item")');
+    const createButton = authenticatedPage.locator('button:has-text("Create Your First Intake Item")');
     if (await createButton.isVisible()) {
       const buttonBox = await createButton.boundingBox();
       expect(buttonBox?.height).toBeGreaterThanOrEqual(44);
     }
   });
 
-  test('Reading Mode - Book selection flow', async ({ page }) => {
+  test('Reading Mode - Book selection flow', async ({ authenticatedPage }) => {
     // Navigate to Reading mode
-    await page.click('button:has-text("Reading")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Reading")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Check reading section is visible
-    await expect(page.locator('text=Book')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Book')).toBeVisible();
 
     // Check "Create Your First Reading Object" button if no items exist
-    const createButton = page.locator('button:has-text("Create Your First Reading Object")');
+    const createButton = authenticatedPage.locator('button:has-text("Create Your First Reading Object")');
     if (await createButton.isVisible()) {
       const buttonBox = await createButton.boundingBox();
       expect(buttonBox?.height).toBeGreaterThanOrEqual(44);
     }
   });
 
-  test('Note Mode - Note creation flow', async ({ page }) => {
+  test('Note Mode - Note creation flow', async ({ authenticatedPage }) => {
     // Navigate to Note mode
-    await page.click('button:has-text("Note")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Note")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Check note section is visible
-    await expect(page.locator('text=Note Title')).toBeVisible();
-    await expect(page.locator('text=Note Content')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Note')).toBeVisible();
+    await expect(authenticatedPage.locator('input[placeholder="e.g., Project Ideas"]')).toBeVisible();
+    await expect(authenticatedPage.locator('textarea[placeholder="Write down your thoughts..."]')).toBeVisible();
 
     // Check textarea is properly sized
-    const textarea = page.locator('textarea');
+    const textarea = authenticatedPage.locator('textarea');
     await expect(textarea).toBeVisible();
     const textareaBox = await textarea.boundingBox();
     expect(textareaBox?.height).toBeGreaterThanOrEqual(44);
   });
 
-  test('Data Mode - Logs display', async ({ page }) => {
+  test('Data Mode - Logs display', async ({ authenticatedPage }) => {
     // Navigate to Data mode
-    await page.click('button:has-text("Data")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Data")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Check data section is visible
-    await expect(page.locator('text=Download All Data')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Download All Data')).toBeVisible();
 
     // Check download button is properly sized
-    const downloadButton = page.locator('button:has-text("Download All Data")');
+    const downloadButton = authenticatedPage.locator('button:has-text("Download All Data")');
     await expect(downloadButton).toBeVisible();
     const buttonBox = await downloadButton.boundingBox();
     expect(buttonBox?.height).toBeGreaterThanOrEqual(44);
   });
 
-  test('Settings Mode - User and customization', async ({ page }) => {
+  test('Settings Mode - User and customization', async ({ authenticatedPage }) => {
     // Navigate to Settings mode
-    await page.click('button:has-text("Settings")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Settings")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Check settings sub-navigation is visible
-    await expect(page.locator('button:has-text("User")')).toBeVisible();
-    await expect(page.locator('button:has-text("Application Look")')).toBeVisible();
+    await expect(authenticatedPage.locator('button:has-text("User")')).toBeVisible();
+    await expect(authenticatedPage.locator('button:has-text("Application Look")')).toBeVisible();
 
     // Check sub-navigation buttons are properly sized
-    const userButton = page.locator('button:has-text("User")');
-    const appLookButton = page.locator('button:has-text("Application Look")');
+    const userButton = authenticatedPage.locator('button:has-text("User")');
+    const appLookButton = authenticatedPage.locator('button:has-text("Application Look")');
     
     const userBox = await userButton.boundingBox();
     const appLookBox = await appLookButton.boundingBox();
@@ -198,44 +240,44 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     expect(appLookBox?.height).toBeGreaterThanOrEqual(44);
 
     // Test User sub-section
-    await page.click('button:has-text("User")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("User")');
+    await authenticatedPage.waitForTimeout(500);
     
-    await expect(page.locator('text=Logout')).toBeVisible();
-    const logoutButton = page.locator('button:has-text("Logout")');
+    await expect(authenticatedPage.locator('text=Logout')).toBeVisible();
+    const logoutButton = authenticatedPage.locator('button:has-text("Logout")');
     const logoutBox = await logoutButton.boundingBox();
     expect(logoutBox?.height).toBeGreaterThanOrEqual(44);
 
     // Test Application Look sub-section
-    await page.click('button:has-text("Application Look")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Application Look")');
+    await authenticatedPage.waitForTimeout(500);
     
-    await expect(page.locator('text=Theme')).toBeVisible();
-    await expect(page.locator('text=Custom Colors')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Theme')).toBeVisible();
+    await expect(authenticatedPage.locator('text=Custom Colors')).toBeVisible();
   });
 
-  test('Modal Accessibility - Add Activity Modal', async ({ page }) => {
+  test('Modal Accessibility - Add Activity Modal', async ({ authenticatedPage }) => {
     // Navigate to Timer mode
-    await page.click('button:has-text("Timer")');
-    await page.waitForTimeout(500);
+    await authenticatedPage.click('button:has-text("Timer")');
+    await authenticatedPage.waitForTimeout(500);
 
     // Click on activity type to trigger modal
-    const activitySection = page.locator('text=Activity Type').first();
+    const activitySection = authenticatedPage.locator('text=Activity Type').first();
     await activitySection.click();
-    await page.waitForTimeout(500);
+    await authenticatedPage.waitForTimeout(500);
 
     // Look for "Add New..." button and click it
-    const addNewButton = page.locator('button:has-text("Add New...")').first();
+    const addNewButton = authenticatedPage.locator('button:has-text("Add New...")').first();
     if (await addNewButton.isVisible()) {
       await addNewButton.click();
-      await page.waitForTimeout(500);
+      await authenticatedPage.waitForTimeout(500);
 
       // Check modal is visible and properly positioned
-      const modal = page.locator('.bg-gray-900.rounded-t-2xl');
+      const modal = authenticatedPage.locator('.bg-gray-900.rounded-t-2xl');
       await expect(modal).toBeVisible();
       
       const modalBox = await modal.boundingBox();
-      const viewport = page.viewportSize();
+      const viewport = authenticatedPage.viewportSize();
       
       // Check modal is within viewport
       expect(modalBox?.x).toBeGreaterThanOrEqual(0);
@@ -253,9 +295,9 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Text Readability - No zoom required', async ({ page }) => {
+  test('Text Readability - No zoom required', async ({ authenticatedPage }) => {
     // Check that all text is readable without zoom
-    const allTextElements = page.locator('h1, h2, h3, h4, h5, h6, p, span, button, label');
+    const allTextElements = authenticatedPage.locator('h1, h2, h3, h4, h5, h6, p, span, button, label');
     const count = await allTextElements.count();
     
     for (let i = 0; i < Math.min(count, 50); i++) {
@@ -272,9 +314,9 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Touch Target Accessibility - All interactive elements', async ({ page }) => {
+  test('Touch Target Accessibility - All interactive elements', async ({ authenticatedPage }) => {
     // Check all buttons, inputs, and interactive elements have proper touch targets
-    const interactiveElements = page.locator('button, input, select, textarea, [role="button"]');
+    const interactiveElements = authenticatedPage.locator('button, input, select, textarea, [role="button"]');
     const count = await interactiveElements.count();
     
     for (let i = 0; i < count; i++) {
@@ -287,7 +329,7 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
           expect(box.height).toBeGreaterThanOrEqual(44);
           
           // Check element is within viewport
-          const viewport = page.viewportSize();
+          const viewport = authenticatedPage.viewportSize();
           expect(box.x).toBeGreaterThanOrEqual(0);
           expect(box.x + box.width).toBeLessThanOrEqual(viewport?.width || 375);
         }
@@ -295,9 +337,9 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Responsive Layout - No fixed widths causing overflow', async ({ page }) => {
+  test('Responsive Layout - No fixed widths causing overflow', async ({ authenticatedPage }) => {
     // Check that no elements have fixed widths that could cause overflow
-    const allElements = page.locator('*');
+    const allElements = authenticatedPage.locator('*');
     const count = await allElements.count();
     
     for (let i = 0; i < Math.min(count, 100); i++) {
@@ -326,34 +368,34 @@ test.describe('Mobile UI/UX Tests - 375px Viewport', () => {
     }
   });
 
-  test('Navigation Flow - Complete app navigation', async ({ page }) => {
+  test('Navigation Flow - Complete app navigation', async ({ authenticatedPage }) => {
     // Test navigation between all main modes
     const modes = ['Timer', 'Record', 'Intake', 'Reading', 'Note', 'Data', 'Settings'];
     
     for (const mode of modes) {
       // Click on mode button
-      await page.click(`button:has-text("${mode}")`);
-      await page.waitForTimeout(500);
+      await authenticatedPage.click(`button:has-text("${mode}")`);
+      await authenticatedPage.waitForTimeout(500);
       
       // Verify mode-specific content is visible
       if (mode === 'Timer') {
-        await expect(page.locator('text=Session Duration')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Activity Type')).toBeVisible();
       } else if (mode === 'Record') {
-        await expect(page.locator('text=Start Time')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Activity Type')).toBeVisible();
       } else if (mode === 'Intake') {
-        await expect(page.locator('text=Select Intake Item(s)')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Select Intake Item(s)')).toBeVisible();
       } else if (mode === 'Reading') {
-        await expect(page.locator('text=Book')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Book')).toBeVisible();
       } else if (mode === 'Note') {
-        await expect(page.locator('text=Note Title')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Note')).toBeVisible();
       } else if (mode === 'Data') {
-        await expect(page.locator('text=Download All Data')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Data Management')).toBeVisible();
       } else if (mode === 'Settings') {
-        await expect(page.locator('button:has-text("User")')).toBeVisible();
+        await expect(authenticatedPage.locator('text=Settings')).toBeVisible();
       }
       
       // Check that action button is always visible and properly sized
-      const actionButton = page.locator('footer button');
+      const actionButton = authenticatedPage.locator('footer button');
       await expect(actionButton).toBeVisible();
       const buttonBox = await actionButton.boundingBox();
       expect(buttonBox?.height).toBeGreaterThanOrEqual(44);

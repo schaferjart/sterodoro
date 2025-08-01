@@ -145,15 +145,15 @@ const AddActivityModal: React.FC<{
 
   return (
     <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-      <div className="bg-gray-900 rounded-t-2xl p-4 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4" onClick={e => e.stopPropagation()}>
         <h3 className="text-lg font-bold text-center">Add New Activity to "{category}"</h3>
         <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Project Phoenix" />
         <InputField label="Sub-Activity" value={subActivity} onChange={setSubActivity} placeholder="e.g., UI Design" />
         <InputField label="Sub-Sub-Activity" value={subSubActivity} onChange={setSubSubActivity} placeholder="e.g., Login Screen" />
         <InputField label="Info" value={info} onChange={setInfo} placeholder="e.g., Focus on component library" />
-        <div className="flex gap-4 pt-2">
-            <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-            <button onClick={handleSave} disabled={!name.trim()} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: !name.trim() ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+        <div className="flex gap-2 sm:gap-4 pt-2">
+            <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+            <button onClick={handleSave} disabled={!name.trim()} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: !name.trim() ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
         </div>
       </div>
     </div>
@@ -185,7 +185,7 @@ const AddIntakeModal: React.FC<{
   
     return (
       <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-        <div className="bg-gray-900 rounded-t-2xl p-4 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
           <h3 className="text-lg font-bold text-center">Add New Intake Item</h3>
           <InputField label="Name*" value={name} onChange={setName} placeholder="e.g., Coffee" />
           <div>
@@ -204,9 +204,9 @@ const AddIntakeModal: React.FC<{
             </select>
           </div>
 
-          <div className="flex gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+          <div className="flex gap-2 sm:gap-4 pt-2">
+              <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!name.trim() || !defaultQuantity || !defaultUnit} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: (!name.trim() || !defaultQuantity || !defaultUnit) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>
@@ -235,15 +235,15 @@ const AddReadingModal: React.FC<{
   
     return (
       <div className="absolute inset-0 bg-black/80 flex flex-col justify-end z-20 animate-fade-in" onClick={onClose}>
-        <div className="bg-gray-900 rounded-t-2xl p-4 space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="bg-gray-900 rounded-t-2xl p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
           <h3 className="text-lg font-bold text-center">Add New Book</h3>
           <InputField label="Book Name*" value={bookName} onChange={setBookName} placeholder="e.g., The Midnight Library" />
           <InputField label="Author*" value={author} onChange={setAuthor} placeholder="e.g., Matt Haig" />
           <InputField label="Year Published" value={year} onChange={setYear} placeholder="e.g., 2020" type="number" />
           <InputField label="Info (Optional)" value={info} onChange={setInfo} placeholder="e.g., Fiction, Fantasy" />
-          <div className="flex gap-4 pt-2">
-              <button onClick={onClose} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
-              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="w-full p-3 rounded-xl font-bold border" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
+          <div className="flex gap-2 sm:gap-4 pt-2">
+              <button onClick={onClose} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: '#374151', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Cancel</button>
+              <button onClick={handleSave} disabled={!bookName.trim() || !author.trim()} className="w-full p-2 sm:p-3 rounded-xl font-bold border min-h-[44px]" style={{ backgroundColor: (!bookName.trim() || !author.trim()) ? '#374151' : '#4f46e5', color: '#ffffff', borderColor: '#ffffff', borderWidth: '1px', borderStyle: 'solid' }}>Save</button>
           </div>
         </div>
       </div>

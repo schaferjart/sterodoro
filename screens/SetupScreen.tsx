@@ -163,7 +163,7 @@ const DateTimeButton: React.FC<{
             <button
                 type="button"
                 onClick={onToggle}
-                className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isExpanded ? 'btn-selected' : 'btn-unselected'}`}
+                className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${isExpanded ? 'btn-selected' : 'btn-unselected'}`}
             >
                 <div className="leading-tight">
                     <div className="font-medium">{time}</div>
@@ -179,8 +179,8 @@ const DateTimeButton: React.FC<{
 const DetailItem: React.FC<{ label: string; value: string | number | undefined }> = ({ label, value }) => {
   if (!value && value !== 0) return null;
   return (
-    <p className="text-gray-300">
-      <span className="font-semibold text-gray-400">{label}:</span> {value}
+    <p className="text-theme-text">
+      <span className="font-semibold text-theme-text opacity-70">{label}:</span> {value}
     </p>
   );
 };
@@ -192,7 +192,7 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
   const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
 
   return (
-    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300 border border-theme-border">
       <div className="flex justify-between items-center p-4">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -200,11 +200,11 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
           aria-expanded={isExpanded}
         >
           <div>
-            <p className="font-bold text-theme-text">{log.Object.name}</p>
-            <p className="text-sm text-theme-text opacity-70">{formatDateTime(log.TimeStart)}</p>
+            <p className="text-theme-text">{log.Object.name}</p>
+            <p className="text-xs sm:text-sm text-theme-text opacity-70">{formatDateTime(log.TimeStart)}</p>
           </div>
           <div className="text-right">
-            <p className="font-semibold text-indigo-400">{formatDurationMs(durationMs)}</p>
+            <p className="font-semibold text-theme-text">{formatDurationMs(durationMs)}</p>
           </div>
         </button>
         <button
@@ -220,10 +220,10 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
         </button>
       </div>
       {isExpanded && (
-        <div className="p-4 border-t border-theme-border bg-theme-surface/50 space-y-4 animate-fade-in text-sm">
+        <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
           <div>
             <h4 className="font-bold text-theme-text mb-1">Details</h4>
-            <div className="pl-4 border-l-2 border-theme-border space-y-1 text-xs">
+            <div className="pl-4 border-l-2 border-theme-border space-y-1 text-xs sm:text-sm">
               <DetailItem label="Category" value={log.Object.type} />
               <DetailItem label="Sub-Activity" value={log.Object.subActivity} />
               <DetailItem label="Sub-Sub-Activity" value={log.Object.subSubActivity} />
@@ -233,12 +233,12 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
           
           {log.Notes.length > 0 && (
             <div>
-              <h4 className="font-bold text-gray-200 mb-1">Notes ({log.Notes.length})</h4>
-              <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+              <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Notes ({log.Notes.length})</h4>
+              <ul className="pl-4 border-l-2 border-theme-border space-y-2 text-xs sm:text-sm">
                 {log.Notes.map((note) => (
                     <li key={note.timestamp}>
-                        <p className="text-gray-400 font-mono">{formatDateTime(note.timestamp)}</p>
-                        <p className="text-gray-300 whitespace-pre-wrap">{note.note}</p>
+                        <p className="text-theme-text opacity-70 font-mono">{formatDateTime(note.timestamp)}</p>
+                        <p className="text-theme-text whitespace-pre-wrap">{note.note}</p>
                     </li>
                 ))}
               </ul>
@@ -247,12 +247,12 @@ const SessionLogItem: React.FC<{ log: SessionLog; onDelete: (id: string) => Prom
 
           {log.TrackerAndMetric.length > 0 && (
             <div>
-              <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
-              <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+              <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Performance</h4>
+              <ul className="pl-4 border-l-2 border-theme-border space-y-2 text-xs sm:text-sm">
                 {log.TrackerAndMetric.map((entry, i) => (
                   <li key={entry.timestamp}>
-                     <p className="text-gray-400 font-semibold">Break {i+1} @ {formatDateTime(entry.timestamp)}</p>
-                     <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                     <p className="text-theme-text opacity-70 font-semibold">Break {i+1} @ {formatDateTime(entry.timestamp)}</p>
+                     <p className="text-theme-text">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
                   </li>
                 ))}
               </ul>
@@ -268,7 +268,7 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
-    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300 border border-theme-border">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -276,11 +276,11 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
             aria-expanded={isExpanded}
           >
             <div>
-              <p className="font-bold text-white">{log.intake.name}</p>
-              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+              <p className="text-theme-text">{log.intake.name}</p>
+              <p className="text-xs sm:text-sm text-theme-text opacity-70">{formatDateTime(log.timestamp)}</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-teal-400">{log.quantity} {log.unit}</p>
+              <p className="font-semibold text-theme-text">{log.quantity} {log.unit}</p>
             </div>
           </button>
           <button
@@ -296,10 +296,10 @@ const IntakeLogItem: React.FC<{ log: IntakeLog; onDelete: (id: string) => Promis
           </button>
         </div>
         {isExpanded && (
-          <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+          <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
             <div>
-              <h4 className="font-bold text-gray-200 mb-1">Details</h4>
-              <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+              <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Details</h4>
+              <div className="pl-4 border-l-2 border-theme-border space-y-1 text-xs sm:text-sm">
                 <DetailItem label="Type" value={log.intake.type} />
                 <DetailItem label="Info" value={log.intake.info} />
               </div>
@@ -315,7 +315,7 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
     const durationMs = new Date(log.TimeEnd).getTime() - new Date(log.TimeStart).getTime();
   
     return (
-    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300 border border-theme-border">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -323,12 +323,12 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
             aria-expanded={isExpanded}
           >
             <div>
-              <p className="font-bold text-white">{log.Object.bookName}</p>
-              <p className="text-sm text-gray-400">{log.Object.author}</p>
+              <p className="text-theme-text">{log.Object.bookName}</p>
+              <p className="text-xs sm:text-sm text-theme-text opacity-70">{log.Object.author}</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-cyan-400">{formatDurationMs(durationMs)}</p>
-              <p className="text-sm text-gray-400">{formatDateTime(log.TimeStart)}</p>
+              <p className="font-semibold text-theme-text">{formatDurationMs(durationMs)}</p>
+              <p className="text-xs sm:text-sm text-theme-text opacity-70">{formatDateTime(log.TimeStart)}</p>
             </div>
           </button>
           <button
@@ -344,10 +344,10 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
           </button>
         </div>
         {isExpanded && (
-            <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+            <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
             <div>
-                <h4 className="font-bold text-gray-200 mb-1">Details</h4>
-                <div className="pl-4 border-l-2 border-gray-700 space-y-1 text-xs">
+                <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Details</h4>
+                <div className="pl-4 border-l-2 border-theme-border space-y-1 text-xs sm:text-sm">
                     <DetailItem label="Year" value={log.Object.year} />
                     <DetailItem label="Info" value={log.Object.info} />
                 </div>
@@ -355,12 +355,12 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
             
             {log.Notes.length > 0 && (
               <div>
-                <h4 className="font-bold text-gray-200 mb-1">Notes ({log.Notes.length})</h4>
-                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Notes ({log.Notes.length})</h4>
+                <ul className="pl-4 border-l-2 border-theme-border space-y-2 text-xs sm:text-sm">
                   {log.Notes.map((note) => (
                       <li key={note.timestamp}>
-                          <p className="text-gray-400 font-mono">{formatDateTime(note.timestamp)}</p>
-                          <p className="text-gray-300 whitespace-pre-wrap">{note.note}</p>
+                          <p className="text-theme-text opacity-70 font-mono">{formatDateTime(note.timestamp)}</p>
+                          <p className="text-theme-text whitespace-pre-wrap">{note.note}</p>
                       </li>
                   ))}
                 </ul>
@@ -369,12 +369,12 @@ const ReadingLogItem: React.FC<{ log: ReadingLog; onDelete: (id: string) => Prom
 
             {log.TrackerAndMetric.length > 0 && (
               <div>
-                <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
-                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Performance</h4>
+                <ul className="pl-4 border-l-2 border-theme-border space-y-2 text-xs sm:text-sm">
                   {log.TrackerAndMetric.map((entry) => (
                     <li key={entry.timestamp}>
-                       <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
-                       <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                       <p className="text-theme-text opacity-70 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
+                       <p className="text-theme-text">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
                     </li>
                   ))}
                 </ul>
@@ -390,7 +390,7 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
     const [isExpanded, setIsExpanded] = useState(false);
   
     return (
-    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300">
+    <li className="bg-theme-surface rounded-lg overflow-hidden transition-all duration-300 border border-theme-border">
         <div className="flex justify-between items-center p-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -398,11 +398,11 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
             aria-expanded={isExpanded}
           >
             <div>
-              <p className="font-bold text-white">{log.title || 'Untitled Note'}</p>
-              <p className="text-sm text-gray-400">{formatDateTime(log.timestamp)}</p>
+              <p className="text-theme-text">{log.title || 'Untitled Note'}</p>
+              <p className="text-xs sm:text-sm text-theme-text opacity-70">{formatDateTime(log.timestamp)}</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-yellow-400">{log.content.length} chars</p>
+              <p className="font-semibold text-theme-text">{log.content.length} chars</p>
             </div>
           </button>
           <button
@@ -418,22 +418,22 @@ const NoteLogItem: React.FC<{ log: NoteLog; onDelete: (id: string) => Promise<vo
           </button>
         </div>
         {isExpanded && (
-          <div className="p-4 border-t border-gray-700 bg-gray-800/50 space-y-4 animate-fade-in text-sm">
+          <div className="p-3 border-t border-theme-border bg-theme-surface/50 space-y-2 animate-fade-in text-xs sm:text-sm">
             <div>
-              <h4 className="font-bold text-gray-200 mb-1">Content</h4>
-              <div className="pl-4 border-l-2 border-gray-700">
-                <p className="text-gray-300 whitespace-pre-wrap text-xs">{log.content}</p>
+              <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Content</h4>
+              <div className="pl-4 border-l-2 border-theme-border">
+                <p className="text-theme-text whitespace-pre-wrap text-xs sm:text-sm">{log.content}</p>
               </div>
             </div>
             
             {log.TrackerAndMetric.length > 0 && (
               <div>
-                <h4 className="font-bold text-gray-200 mb-1">Performance</h4>
-                <ul className="pl-4 border-l-2 border-gray-700 space-y-2 text-xs">
+                <h4 className="text-theme-text mb-1 text-xs sm:text-sm">Performance</h4>
+                <ul className="pl-4 border-l-2 border-theme-border space-y-2 text-xs sm:text-sm">
                   {log.TrackerAndMetric.map((entry) => (
                     <li key={entry.timestamp}>
-                       <p className="text-gray-400 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
-                       <p className="text-gray-300">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
+                       <p className="text-theme-text opacity-70 font-semibold">Entry @ {formatDateTime(entry.timestamp)}</p>
+                       <p className="text-theme-text">{Object.entries(entry.metrics).map(([key, val]) => `${key}: ${val}/10`).join(' • ')}</p>
                     </li>
                   ))}
                 </ul>
@@ -785,6 +785,25 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
         });
         resetForms();
         setMode('TIMER');
+    } else if (mode === 'DATA') {
+        if (logs.length === 0) return;
+        
+        try {
+            const jsonString = JSON.stringify(logs, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const date = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `productivity-logs_${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Failed to export logs:", error);
+            alert("Could not export logs. See console for details.");
+        }
     }
   };
   
@@ -798,6 +817,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             const num = selectedIntakeIds.length;
             const text = `Log ${num > 0 ? num : ''} Intake${num !== 1 ? 's' : ''}`;
             return { disabled: isIntakeInvalid, text };
+          case 'DATA': return { disabled: logs.length === 0, text: 'Export All Data' };
           default: return { disabled: true, text: 'Select Mode' };
       }
   };
@@ -808,14 +828,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
 
   const renderOptionalTrackers = () => (
     <>
-      <div className="p-3 sm:p-4 space-y-3">
+      <div className="p-2 sm:p-3 space-y-2">
           
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
             {TRACKERS.map(tracker => ( 
               <button 
                 key={tracker.id} 
                 onClick={() => handleTrackerSelect(tracker.id)} 
-                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
+                className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
               >
                 {tracker.name}
               </button>
@@ -823,9 +843,9 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           </div>
       </div>
       {selectedTrackerId && trackerMetrics && (
-          <div className="p-3 sm:p-4 space-y-3">
+          <div className="p-2 sm:p-3 space-y-2">
               {(TRACKERS.find(t => t.id === selectedTrackerId)?.name || 'Tracker')}
-              <div className="space-y-6 px-2 pt-2">
+              <div className="space-y-4 px-2 pt-2">
                   {Object.entries(trackerMetrics).map(([metricName, metricValue]) => (
                       <div key={metricName}>
                           <div className="flex justify-between items-baseline mb-3">
@@ -844,7 +864,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const renderTrackerAndNotes = () => (
       <>
         {renderOptionalTrackers()}
-        <div className="p-3 sm:p-4 space-y-3">
+        <div className="p-2 sm:p-3 space-y-2">
             
                             <textarea value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Add notes about this session..." className="w-full h-24 bg-theme-surface text-theme-text p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border resize-none border border-theme-border" />
         </div>
@@ -859,50 +879,50 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       
       <main className="flex-1 overflow-y-auto pb-24">
         <div>
-          <div className="p-3 sm:p-4 space-y-3">
-              <div className="grid grid-cols-3 gap-3">
+          <div className="p-2 sm:p-3 space-y-2">
+              <div className="grid grid-cols-3 gap-2">
                   <button 
                     onClick={() => setMode('TIMER')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'TIMER')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'TIMER')}`}
                   >
                     Timer
                   </button>
                   <button 
                     onClick={() => setMode('RECORD')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'RECORD')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'RECORD')}`}
                   >
                     Record
                   </button>
                   <button 
                     onClick={() => setMode('INTAKE')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'INTAKE')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'INTAKE')}`}
                   >
                     Intake
                   </button>
                   <button 
                     onClick={() => setMode('READING')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'READING')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'READING')}`}
                   >
                     Reading
                   </button>
                   <button 
                     onClick={() => setMode('NOTE')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'NOTE')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'NOTE')}`}
                   >
                     Note
                   </button>
                   <div className="p-4 rounded-lg bg-transparent"></div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                   <button 
                     onClick={() => setMode('DATA')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'DATA')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'DATA')}`}
                   >
                     Data
                   </button>
                   <button 
                     onClick={() => setMode('SETTINGS')} 
-                    className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] min-w-[44px] btn-mobile ${getButtonStyle(mode === 'SETTINGS')}`}
+                    className={`p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${getButtonStyle(mode === 'SETTINGS')}`}
                   >
                     Settings
                   </button>
@@ -914,24 +934,24 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           
           {mode === 'INTAKE' ? (
             <>
-              <div className="p-3 sm:p-4 space-y-3">
+              <div className="p-2 sm:p-3 space-y-2">
                 
                 {intakes.length === 0 ? (
-                    <div className="text-center py-8">
-                        <p className="text-black mb-4">No intake items yet</p>
-                        <button onClick={() => setIsAddingIntake(true)} className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${getButtonStyle(false)}`}>
+                    <div className="text-center py-6">
+                        <p className="text-black mb-2">No intake items yet</p>
+                        <button onClick={() => setIsAddingIntake(true)} className={`p-2 sm:p-3 rounded-lg font-bold border btn-mobile ${getButtonStyle(false)}`}>
                             Create Your First Intake Item
                         </button>
                     </div>
                 ) : (
-                                            <div className="grid grid-cols-3 gap-3">
+                                            <div className="grid grid-cols-3 gap-2">
                             {intakes.map(intake => {
                                 const isSelected = selectedIntakeIds.includes(intake.id);
                                 return (
                                     <div key={intake.id} className="relative group">
                                         <button 
                                             onClick={() => handleToggleIntake(intake.id)} 
-                                            className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}
+                                            className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}
                                         >
                                             {intake.name}
                                         </button>
@@ -952,21 +972,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                             <button 
                               onClick={isAddingIntake ? handleSaveInlineIntake : () => setIsAddingIntake(true)} 
                               disabled={isAddingIntake && (!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit)}
-                              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingIntake ? ((!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit) ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${isAddingIntake ? ((!newIntakeName.trim() || !newIntakeQuantity || !newIntakeUnit) ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
                             >
                               {isAddingIntake ? 'Save' : 'Other...'}
                             </button>
                         </div>
                 )}
                 {isAddingIntake && (
-                    <div className="grid grid-cols-3 gap-3 mt-3">
+                    <div className="grid grid-cols-3 gap-2 mt-3">
                       {/* Name as editable div */}
                       <div
                         contentEditable
                         suppressContentEditableWarning
                         onFocus={e => { if (!newIntakeName) e.currentTarget.textContent = ''; }}
                         onBlur={e => setNewIntakeName(e.currentTarget.textContent || '')}
-                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                       >
                         {newIntakeName || 'Name'}
                       </div>
@@ -975,7 +995,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         <button
                           type="button"
                           onClick={() => setIsIntakeTypeOpen(o => !o)}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newIntakeType}
                         </button>
@@ -985,7 +1005,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               <li
                                 key={t}
                                 onClick={() => { setNewIntakeType(t); setIsIntakeTypeOpen(false); }}
-                                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                                className="px-4 py-2 hover:bg-theme-surface/70 cursor-pointer"
                               >
                                 {t}
                               </li>
@@ -999,7 +1019,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         suppressContentEditableWarning
                         onFocus={e => { if (!newIntakeQuantity) e.currentTarget.textContent = ''; }}
                         onBlur={e => setNewIntakeQuantity(e.currentTarget.textContent || '')}
-                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                       >
                         {newIntakeQuantity || 'Quantity'}
                       </div>
@@ -1008,7 +1028,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         <button
                           type="button"
                           onClick={() => setIsIntakeUnitOpen(o => !o)}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newIntakeUnit || 'Unit'}
                         </button>
@@ -1018,7 +1038,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               <li
                                 key={u}
                                 onClick={() => { setNewIntakeUnit(u); setIsIntakeUnitOpen(false); }}
-                                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                                className="px-4 py-2 hover:bg-theme-surface/70 cursor-pointer"
                               >
                                 {u}
                               </li>
@@ -1032,7 +1052,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                         suppressContentEditableWarning
                         onFocus={e => { if (!newIntakeInfo) e.currentTarget.textContent = ''; }}
                         onBlur={e => setNewIntakeInfo(e.currentTarget.textContent || '')}
-                        className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                        className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                       >
                         {newIntakeInfo || 'Info'}
                       </div>
@@ -1040,33 +1060,33 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                 )}
               </div>
               {selectedIntakeIds.length > 0 && (
-                <div className="p-3 sm:p-4 space-y-3">
+                <div className="p-2 sm:p-3 space-y-2">
                   <DateTimeField label="Time of Intake (for all items)" value={intakeTime} onChange={setIntakeTime} />
                 </div>
               )}
             </>
           ) : mode === 'READING' ? (
             <>
-              <div className="p-3 sm:p-4 space-y-3">
+              <div className="p-2 sm:p-3 space-y-2">
                   
                   {readingObjects.length === 0 ? (
-                      <div className="text-center py-8">
-                          <p className="text-black mb-4">No books yet</p>
+                      <div className="text-center py-6">
+                          <p className="text-black mb-2">No books yet</p>
                           <button 
                             onClick={isAddingReadingObject ? handleSaveInlineReadingObject : () => setIsAddingReadingObject(true)}
                             disabled={isAddingReadingObject && !newReadingBookName.trim()}
-                            className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                            className={`p-2 sm:p-3 rounded-lg font-bold border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
                           >
                             {isAddingReadingObject ? 'Save Book' : 'Add Your First Book'}
                           </button>
                       </div>
                   ) : (
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                           {readingObjects.map(book => (
                               <div key={book.id} className="relative group">
                                   <button 
                                       onClick={() => setSelectedReadingObject(book)} 
-                                      className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedReadingObject?.id === book.id)}`}
+                                      className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedReadingObject?.id === book.id)}`}
                                   >
                                       {book.bookName}
                                   </button>
@@ -1086,21 +1106,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           <button 
                             onClick={isAddingReadingObject ? handleSaveInlineReadingObject : () => setIsAddingReadingObject(true)}
                             disabled={isAddingReadingObject && !newReadingBookName.trim()}
-                            className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                            className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${isAddingReadingObject ? (!newReadingBookName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
                           >
                             {isAddingReadingObject ? 'Save' : 'Other...'}
                           </button>
                       </div>
                   )}
                   {isAddingReadingObject && (
-                      <div className="grid grid-cols-3 gap-3 mt-3">
+                      <div className="grid grid-cols-3 gap-2 mt-3">
                         {/* Book Name as editable div */}
                         <div
                           contentEditable
                           suppressContentEditableWarning
                           onFocus={e => { if (!newReadingBookName) e.currentTarget.textContent = ''; }}
                           onBlur={e => setNewReadingBookName(e.currentTarget.textContent || '')}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newReadingBookName || 'Book Name'}
                         </div>
@@ -1110,7 +1130,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           suppressContentEditableWarning
                           onFocus={e => { if (!newReadingAuthor) e.currentTarget.textContent = ''; }}
                           onBlur={e => setNewReadingAuthor(e.currentTarget.textContent || '')}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newReadingAuthor || 'Author'}
                         </div>
@@ -1120,7 +1140,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           suppressContentEditableWarning
                           onFocus={e => { if (!newReadingYear) e.currentTarget.textContent = ''; }}
                           onBlur={e => setNewReadingYear(e.currentTarget.textContent || '')}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newReadingYear || 'Year'}
                         </div>
@@ -1130,7 +1150,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           suppressContentEditableWarning
                           onFocus={e => { if (!newReadingInfo) e.currentTarget.textContent = ''; }}
                           onBlur={e => setNewReadingInfo(e.currentTarget.textContent || '')}
-                          className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                          className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                         >
                           {newReadingInfo || 'Info'}
                         </div>
@@ -1139,9 +1159,9 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               </div>
               {selectedReadingObject && (
                   <>
-                    <div className="p-3 sm:p-4 space-y-3">
+                    <div className="p-2 sm:p-3 space-y-2">
                       
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                         <DateTimeButton 
                           label="Start Time" 
                           value={startTime} 
@@ -1156,14 +1176,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                           isExpanded={expandedDateTimePicker === 'end'}
                           onToggle={() => setExpandedDateTimePicker(expandedDateTimePicker === 'end' ? null : 'end')}
                         />
-                        <button className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile btn-unselected">
+                        <button className="p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile btn-unselected">
                           Note
                         </button>
                       </div>
                       
                       {/* Inline Time/Date Pickers */}
                       {expandedDateTimePicker && (
-                        <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div className="grid grid-cols-3 gap-2 mt-3">
                           {expandedDateTimePicker === 'start' && (
                             <>
                               <input
@@ -1188,7 +1208,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <input
                                 type="date"
@@ -1212,7 +1232,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <div></div>
                             </>
@@ -1241,7 +1261,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <input
                                 type="date"
@@ -1265,7 +1285,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <div></div>
                             </>
@@ -1279,22 +1299,22 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             </>
           ) : mode === 'NOTE' ? (
             <>
-              <div className="p-3 sm:p-4 space-y-3">
+              <div className="p-2 sm:p-3 space-y-2">
                 
                 <InputField label="Title (Optional)" value={noteTitle} onChange={setNoteTitle} placeholder="e.g., Project Ideas" />
                 <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Write down your thoughts..." className="w-full h-32 bg-theme-surface text-theme-text p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-border focus:border-theme-border resize-none border border-theme-border" />
               </div>
-              <div className="p-3 sm:p-4 space-y-3">
+              <div className="p-2 sm:p-3 space-y-2">
                 
-                <div className="space-y-3">
+                <div className="space-y-2">
                     {Object.entries(groupedActivities).map(([category, acts]) => (
                         <div key={category}>
-                            <h4 className="font-bold text-indigo-400 mb-2 text-sm">{category}</h4>
-                            <div className="grid grid-cols-3 gap-3">
+                            <h4 className="text-theme-text mb-2 text-xs sm:text-sm">{category}</h4>
+                            <div className="grid grid-cols-3 gap-2">
                                 {acts.map(activity => {
                                     const isSelected = noteRelatedActivityIds.includes(activity.id);
                                     return (
-                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}>{activity.name}</button>
+                                        <button key={activity.id} onClick={() => handleToggleNoteActivity(activity.id)} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(isSelected)}`}>{activity.name}</button>
                                     );
                                 })}
                             </div>
@@ -1308,14 +1328,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             <>
               {(mode === 'TIMER' || mode === 'RECORD') && (
             <>
-              <div className="p-3 sm:p-4 space-y-3">
+              <div className="p-2 sm:p-3 space-y-2">
                 
-                                      <div className="grid grid-cols-3 gap-3">
+                                      <div className="grid grid-cols-3 gap-2">
                       {Object.values(ActivityCategory).map(cat => ( 
                         <button 
                           key={cat} 
                           onClick={() => { setSelectedCategory(cat); setSelectedActivity(null); }} 
-                          className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedCategory === cat)}`}
+                          className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(selectedCategory === cat)}`}
                         >
                           {cat}
                         </button>
@@ -1323,26 +1343,26 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                 </div>
               </div>
               {selectedCategory && (
-                  <div className="p-3 sm:p-4 space-y-3">
+                  <div className="p-2 sm:p-3 space-y-2">
                       
                       {filteredActivities.length === 0 ? (
-                          <div className="text-center py-8">
-                              <p className="text-black mb-4">No activities yet for {selectedCategory}</p>
+                          <div className="text-center py-6">
+                              <p className="text-black mb-2">No activities yet for {selectedCategory}</p>
                                   <button 
                                     onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)}
                                     disabled={isAddingActivity && !newActivityName.trim()}
-                                    className={`p-3 sm:p-4 rounded-lg font-bold border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                                    className={`p-2 sm:p-3 rounded-lg font-bold border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
                                   >
                                     {isAddingActivity ? 'Save Activity' : 'Create Your First Activity'}
                               </button>
                           </div>
                       ) : (
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-3 gap-2">
                               {filteredActivities.map(act => (
                                 <div key={act.id} className="relative group">
                                   <button 
                                     onClick={() => setSelectedActivity(act)} 
-                                        className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedActivity?.id === act.id)}`}
+                                        className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedActivity?.id === act.id)}`}
                                   >
                                     {act.name}
                                   </button>
@@ -1362,21 +1382,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   <button 
                                 onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)} 
                                 disabled={isAddingActivity && !newActivityName.trim()}
-                                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                                className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
                               >
                                 {isAddingActivity ? 'Save' : 'Other...'}
                               </button>
                                                     </div>
                       )}
                       {isAddingActivity && (
-                          <div className="grid grid-cols-3 gap-3 mt-3">
+                          <div className="grid grid-cols-3 gap-2 mt-3">
                             {/* Name as editable div */}
                             <div
                               contentEditable
                               suppressContentEditableWarning
                               onFocus={e => { if (!newActivityName) e.currentTarget.textContent = ''; }}
                               onBlur={e => setNewActivityName(e.currentTarget.textContent || '')}
-                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                             >
                               {newActivityName || 'Name'}
                             </div>
@@ -1386,7 +1406,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               suppressContentEditableWarning
                               onFocus={e => { if (!newActivitySubActivity) e.currentTarget.textContent = ''; }}
                               onBlur={e => setNewActivitySubActivity(e.currentTarget.textContent || '')}
-                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                             >
                               {newActivitySubActivity || 'Sub Activity'}
                             </div>
@@ -1396,7 +1416,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               suppressContentEditableWarning
                               onFocus={e => { if (!newActivitySubSubActivity) e.currentTarget.textContent = ''; }}
                               onBlur={e => setNewActivitySubSubActivity(e.currentTarget.textContent || '')}
-                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                             >
                               {newActivitySubSubActivity || 'Sub Sub Activity'}
                             </div>
@@ -1406,7 +1426,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                               suppressContentEditableWarning
                               onFocus={e => { if (!newActivityInfo) e.currentTarget.textContent = ''; }}
                               onBlur={e => setNewActivityInfo(e.currentTarget.textContent || '')}
-                              className="w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center truncate border btn-mobile btn-unselected"
+                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
                             >
                               {newActivityInfo || 'Info'}
                             </div>
@@ -1418,16 +1438,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               )}
               {selectedActivity && mode === 'TIMER' && (
                 <>
-                  <div className="p-3 sm:p-4 space-y-3">
+                  <div className="p-2 sm:p-3 space-y-2">
                       
-                      <div className="grid grid-cols-3 gap-3">
-                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'session' || sessionDuration !== 5)}`}>
+                      <div className="grid grid-cols-3 gap-2">
+                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'session' || sessionDuration !== 5)}`}>
                               {sessionDuration !== 5 ? `Session ${formatDuration(sessionDuration)}` : 'Session'}
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'break' || breakDuration !== 1)}`}>
+                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'break' || breakDuration !== 1)}`}>
                               {breakDuration !== 1 ? `Break ${formatDuration(breakDuration)}` : 'Break'}
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'count' || sessionCount !== 2)}`}>
+                          <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'count' || sessionCount !== 2)}`}>
                               {sessionCount !== 2 ? `Sessions ${sessionCount}` : 'Sessions'}
                           </button>
                       </div>
@@ -1435,75 +1455,75 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                       {activeSlider === 'break' && <div className="pt-3"><Slider min={1} max={10} step={1} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
                       {activeSlider === 'count' && <div className="pt-3"><Slider min={1} max={10} step={1} value={sessionCount} onChange={setSessionCount} label={`${sessionCount} sessions`} /></div>}
                   </div>
-                  <div className="p-3 sm:p-4 space-y-3">
+                  <div className="p-2 sm:p-3 space-y-2">
                     
-                                          <div className="grid grid-cols-3 gap-3">
+                                          <div className="grid grid-cols-3 gap-2">
                       {allTrackers.map(tracker => ( 
                         <button 
                           key={tracker.id} 
                           onClick={() => handleTrackerSelect(tracker.id)} 
-                          className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
+                          className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(selectedTrackerId === tracker.id)}`}
                         >
                           {tracker.name}
                         </button>
                       ))}
                     </div>
                   </div>
-                  {selectedTrackerId && (<div className="p-3 sm:p-4 space-y-3">
+                  {selectedTrackerId && (<div className="p-2 sm:p-3 space-y-2">
                       
-                      <div className="grid grid-cols-3 gap-3">
-                        <button onClick={() => setTrackerFrequency('every_break')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'every_break')}`}>Every Break</button>
-                        <button onClick={() => setTrackerFrequency('end_of_session')} className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'end_of_session')}`}>End of Session</button>
-                        <div className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base text-center border opacity-50 bg-theme-surface border-theme-border">-</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button onClick={() => setTrackerFrequency('every_break')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'every_break')}`}>Every Break</button>
+                        <button onClick={() => setTrackerFrequency('end_of_session')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(trackerFrequency === 'end_of_session')}`}>End of Session</button>
+                        <div className="p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center border opacity-50 bg-theme-surface border-theme-border">-</div>
                       </div>
                   </div>)}
-                  <div className="p-3 sm:p-4 space-y-3">
-                      <div className="grid grid-cols-3 gap-3">
+                  <div className="p-2 sm:p-3 space-y-2">
+                      <div className="grid grid-cols-3 gap-2">
                                   <button
                                       onClick={() => onSoundEnabledChange(!soundEnabled)}
-                              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${getButtonStyle(soundEnabled)}`}
+                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(soundEnabled)}`}
                                   >
                               {soundEnabled ? 'Sound Enabled' : 'Sound Disabled'}
                                   </button>
                           <div></div>
                           <div></div>
                               </div>
-                  </div>
+                          </div>
                 </>
               )}
               {selectedActivity && mode === 'RECORD' && (
                   <>
-                    <div className="p-3 sm:p-4 space-y-3">
+                    <div className="p-2 sm:p-3 space-y-2">
                       
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                         <button
                           type="button"
                           onClick={() => setExpandedDateTimePicker(expandedDateTimePicker === 'start' ? null : 'start')}
-                          className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'start' ? 'btn-selected' : 'btn-unselected'}`}
+                          className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'start' ? 'btn-selected' : 'btn-unselected'}`}
                         >
                           <div className="leading-tight">
                             <div className="font-medium">{startTime ? new Date(startTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
                             <div className="text-xs opacity-75">{startTime ? new Date(startTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-') : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')}</div>
-                          </div>
+                      </div>
                         </button>
                         <button
                           type="button"
                           onClick={() => setExpandedDateTimePicker(expandedDateTimePicker === 'end' ? null : 'end')}
-                          className={`w-full p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'end' ? 'btn-selected' : 'btn-unselected'}`}
+                          className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${expandedDateTimePicker === 'end' ? 'btn-selected' : 'btn-unselected'}`}
                         >
                           <div className="leading-tight">
                             <div className="font-medium">{endTime ? new Date(endTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
                             <div className="text-xs opacity-75">{endTime ? new Date(endTime).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-') : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')}</div>
-                          </div>
+                  </div>
                         </button>
-                        <button className="p-3 sm:p-4 rounded-lg text-xs sm:text-sm md:text-base transition-colors text-center border btn-mobile btn-unselected">
+                        <button className="p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile btn-unselected">
                           Note
                         </button>
                       </div>
                       
                       {/* Inline Time/Date Pickers */}
                       {expandedDateTimePicker && (
-                        <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div className="grid grid-cols-3 gap-2 mt-3">
                           {expandedDateTimePicker === 'start' && (
                             <>
                               <input
@@ -1528,7 +1548,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <input
                                 type="date"
@@ -1552,11 +1572,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <div></div>
-                            </>
-                          )}
+                </>
+              )}
                           {expandedDateTimePicker === 'end' && (
                             <>
                               <input
@@ -1581,7 +1601,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <input
                                 type="date"
@@ -1605,7 +1625,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                                   textAlign: 'center',
                                   width: '100%'
                                 }}
-                                className="text-xs sm:text-sm md:text-base"
+                                className="text-xs sm:text-sm"
                               />
                               <div></div>
                             </>
@@ -1618,44 +1638,15 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
               )}
               {mode === 'DATA' && (
                 <>
-                  <div className="p-3 sm:p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      
-                      <button 
-                        onClick={() => {
-                          if (logs.length === 0) return;
-
-                          try {
-                            const jsonString = JSON.stringify(logs, null, 2);
-                            const blob = new Blob([jsonString], { type: 'application/json' });
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            const date = new Date().toISOString().split('T')[0];
-                            link.href = url;
-                            link.download = `productivity-logs_${date}.json`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(url);
-                          } catch (error) {
-                            console.error("Failed to export logs:", error);
-                            alert("Could not export logs. See console for details.");
-                          }
-                        }}
-                        className={`p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border btn-mobile btn-selected`}
-                      >
-                        Download All Data
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-4 overflow-y-auto max-h-[60vh]">
+                  <div className="p-2 sm:p-3 space-y-2">
+                    <div className="space-y-2 overflow-y-auto max-h-[60vh]">
                       {logs.length === 0 ? (
-                        <div className="text-center text-gray-400 mt-20 flex flex-col items-center h-full justify-center">
-                          <p className="text-lg">No saved logs yet.</p>
-                          <p className="text-sm">Complete a session or log an intake to see it here.</p>
+                        <div className="text-center text-theme-text opacity-70 mt-12 flex flex-col items-center h-full justify-center">
+                          <p className="text-xs sm:text-sm">No saved logs yet.</p>
+                          <p className="text-xs sm:text-sm opacity-70">Complete a session or log an intake to see it here.</p>
                         </div>
                       ) : (
-                        <ul className="space-y-3">
+                        <ul className="space-y-2">
                           {logs.map((log) => {
                             if ('intake' in log) {
                               return <IntakeLogItem key={log.id} log={log as IntakeLog} onDelete={onDeleteIntakeLog} />;
@@ -1679,26 +1670,26 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
           )}
               {mode === 'SETTINGS' && (
                 <>
-                  <div className="p-3 sm:p-4 space-y-3">
+                  <div className="p-2 sm:p-3 space-y-2">
                     
                     
 
 
                     {/* User Settings Section */}
-                    <div className="p-4 rounded-lg space-y-4 border bg-theme-surface border-theme-border">
+                    <div className="p-4 rounded-lg space-y-2 border bg-theme-surface border-theme-border">
                         <div>
-                          <h3 className="text-lg font-semibold text-white mb-2">User Information</h3>
+                          <h3 className="text-sm font-semibold text-white mb-2">User Information</h3>
                           <div className="space-y-2">
                             <DetailItem label="Email" value={userEmail} />
                             <DetailItem label="User ID" value={userEmail?.split('@')[0]} />
                           </div>
                         </div>
                         
-                        <div className="pt-4 border-t border-gray-700">
-                          <h3 className="text-lg font-semibold text-white mb-2">Account Actions</h3>
+                        <div className="pt-4 border-t border-theme-border">
+                          <h3 className="text-sm font-semibold text-white mb-2">Account Actions</h3>
                           <button 
                             onClick={onLogout}
-                            className="w-full px-4 py-3 rounded-lg font-medium transition-colors border bg-red-600 text-white border-white"
+                            className="w-full px-4 py-2 rounded-lg font-medium transition-colors border bg-red-600 text-white border-white"
                           >
                             Logout
                           </button>
@@ -1716,11 +1707,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
       </main>
 
             <footer className="border-t fixed bottom-0 left-0 right-0 z-10 bg-theme-background border-theme-border" style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}>
-        <div className="p-3 sm:p-4">
+        <div className="p-2 sm:p-3">
             <button 
               onClick={handleAction} 
               disabled={actionButtonDisabled} 
-            className={`w-full p-3 sm:p-4 rounded-lg font-bold transition-colors text-xs sm:text-sm md:text-base border min-h-[44px] btn-mobile ${actionButtonDisabled ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected'}`}
+            className={`w-full p-2 sm:p-3 rounded-lg transition-colors text-xs sm:text-sm text-center border btn-mobile ${actionButtonDisabled ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected'}`}
             >
               {actionButtonText}
             </button>

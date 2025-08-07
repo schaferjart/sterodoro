@@ -464,8 +464,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   // const [isAddingActivity, setIsAddingActivity] = useState(false); // TODO: Will be re-added for inline forms
 
   // Timer mode state
-  const [sessionDuration, setSessionDuration] = useState(25);
-  const [breakDuration, setBreakDuration] = useState(5);
+  const [sessionDuration, setSessionDuration] = useState(1500); // 25 minutes in seconds
+  const [breakDuration, setBreakDuration] = useState(300); // 5 minutes in seconds
   const [sessionCount, setSessionCount] = useState(4);
   const [trackerFrequency, setTrackerFrequency] = useState<TrackerFrequency>('every_break');
   const [activeSlider, setActiveSlider] = useState<'session' | 'break' | 'count' | null>(null);
@@ -542,8 +542,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     setSelectedCategory(null);
     setSelectedActivity(null);
     setSelectedReadingObject(null);
-          setSessionDuration(25);
-      setBreakDuration(5);
+          setSessionDuration(1500); // 25 minutes in seconds
+      setBreakDuration(300); // 5 minutes in seconds
       setSessionCount(4);
     setTrackerFrequency('every_break');
     setActiveSlider(null);
@@ -1467,18 +1467,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
                   <div className="p-2 sm:p-3 space-y-2">
                       
                       <div className="grid grid-cols-3 gap-2">
-                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'session' || sessionDuration !== 25)}`}>
-                              {sessionDuration !== 25 ? `Session ${formatDuration(sessionDuration)}` : 'Session'}
+                          <button onClick={() => setActiveSlider(activeSlider === 'session' ? null : 'session')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'session' || sessionDuration !== 1500)}`}>
+                              {sessionDuration !== 1500 ? `Session ${formatDuration(sessionDuration)}` : 'Session'}
                           </button>
-                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'break' || breakDuration !== 5)}`}>
-                              {breakDuration !== 5 ? `Break ${formatDuration(breakDuration)}` : 'Break'}
+                          <button onClick={() => setActiveSlider(activeSlider === 'break' ? null : 'break')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'break' || breakDuration !== 300)}`}>
+                              {breakDuration !== 300 ? `Break ${formatDuration(breakDuration)}` : 'Break'}
                           </button>
                           <button onClick={() => setActiveSlider(activeSlider === 'count' ? null : 'count')} className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(activeSlider === 'count' || sessionCount !== 4)}`}>
                               {sessionCount !== 4 ? `Sessions ${sessionCount}` : 'Sessions'}
                           </button>
                       </div>
-                      {activeSlider === 'session' && <div className="pt-3"><Slider min={5} max={300} step={1} value={sessionDuration} onChange={setSessionDuration} label={formatDuration(sessionDuration)} /></div>}
-                      {activeSlider === 'break' && <div className="pt-3"><Slider min={1} max={15} step={1} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
+                      {activeSlider === 'session' && <div className="pt-3"><Slider min={300} max={18000} step={60} value={sessionDuration} onChange={setSessionDuration} label={formatDuration(sessionDuration)} /></div>}
+                      {activeSlider === 'break' && <div className="pt-3"><Slider min={60} max={900} step={60} value={breakDuration} onChange={setBreakDuration} label={formatDuration(breakDuration)} /></div>}
                       {activeSlider === 'count' && <div className="pt-3"><Slider min={1} max={10} step={1} value={sessionCount} onChange={setSessionCount} label={`${sessionCount} sessions`} /></div>}
                   </div>
                   <div className="p-2 sm:p-3 space-y-2">

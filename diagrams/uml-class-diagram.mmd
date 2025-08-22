@@ -1,0 +1,72 @@
+classDiagram
+class User {
+  +userId
+  +email
+  +sessionToken
+}
+class ActivityType {
+  <<enumeration>>
+  Social
+  Personal
+  Health
+  Work
+}
+class TrackerStatus {
+  <<enumeration>>
+  active
+  paused
+  completed
+}
+class ActivityObject {
+  +id
+  +type
+  +description
+}
+class NoteObject {
+  +id
+  +content
+  +timestamp
+}
+class TrackerObject {
+  +id
+  +startTime
+  +endTime
+  +duration
+  +status
+}
+class IntakeObject {
+  +id
+  +item
+  +quantity
+  +timestamp
+}
+class ReadingObject {
+  +id
+  +value
+  +metric
+  +timestamp
+}
+class Settings {
+  +theme
+  +notificationEnabled
+}
+class LocalCache {
+  +pending
+  +lastSyncAt
+}
+
+User -- ActivityObject : owns
+User -- NoteObject : owns
+User -- TrackerObject : owns
+User -- IntakeObject : owns
+User -- ReadingObject : owns
+User -- Settings : has
+
+ActivityObject o-- NoteObject : aggregates
+ActivityObject o-- IntakeObject : aggregates
+ActivityObject o-- ReadingObject : aggregates
+
+TrackerObject --> ActivityObject : tracks
+NoteObject --> ActivityObject : associated with
+IntakeObject --> ActivityObject : optional
+ReadingObject --> ActivityObject : optional

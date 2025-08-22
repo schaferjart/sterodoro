@@ -1,0 +1,128 @@
+graph LR
+    subgraph "Frontend Stack"
+        FS1[React 19.1.0<br/>UI Framework]
+        FS2[TypeScript<br/>Type Safety]
+        FS3[Tailwind CSS<br/>Styling]
+        FS4[Vite 6.2.0<br/>Build Tool]
+        FS5[Custom Components<br/>UI Library]
+    end
+    
+    subgraph "State Management"
+        SM1[React useState<br/>Local State]
+        SM2[Props Drilling<br/>Component Communication]
+        SM3[Callback Pattern<br/>Event Handling]
+        SM4[Local Storage<br/>Persistence]
+        SM5[Supabase Auth<br/>Global User State]
+    end
+    
+    subgraph "Data Flow Patterns"
+        DF1[User Interaction] --> DF2[Component Event]
+        DF2 --> DF3[Callback to Parent]
+        DF3 --> DF4[State Update]
+        DF4 --> DF5[Props Update]
+        DF5 --> DF6[Re-render]
+        
+        DF7[Database Operation] --> DF8[Offline First]
+        DF8 --> DF9[Local Storage]
+        DF9 --> DF10[Background Sync]
+        DF10 --> DF11[Cloud Database]
+    end
+    
+    subgraph "Backend Infrastructure"
+        BE1[Supabase Database<br/>PostgreSQL]
+        BE2[Supabase Auth<br/>JWT + RLS]
+        BE3[Supabase Realtime<br/>WebSocket]
+        BE4[Row Level Security<br/>Data Protection]
+        BE5[Database Schema<br/>7 Main Tables]
+    end
+    
+    subgraph "Offline Architecture"
+        OA1[Service Worker<br/>sw.js]
+        OA2[Dexie.js<br/>IndexedDB Wrapper]
+        OA3[Cache API<br/>Static Assets]
+        OA4[Background Sync<br/>Retry Queue]
+        OA5[Conflict Resolution<br/>Last Write Wins]
+    end
+    
+    subgraph "PWA Features"
+        PWA1[Web App Manifest<br/>Installation]
+        PWA2[Service Worker<br/>Offline Support]
+        PWA3[Push Notifications<br/>Timer Alerts]
+        PWA4[Background Tasks<br/>Data Sync]
+        PWA5[Responsive Design<br/>Mobile First]
+        PWA6[App Shell<br/>Fast Loading]
+    end
+    
+    subgraph "Critical User Journeys"
+        CJ1[Authentication] --> CJ2[Session Setup]
+        CJ2 --> CJ3[Timer Execution]
+        CJ3 --> CJ4[Performance Tracking]
+        CJ4 --> CJ5[Data Logging]
+        CJ5 --> CJ6[History Review]
+        
+        CJ7[Offline Usage] --> CJ8[Local Storage]
+        CJ8 --> CJ9[Online Detection]
+        CJ9 --> CJ10[Background Sync]
+        CJ10 --> CJ11[Data Reconciliation]
+    end
+    
+    subgraph "Security & Performance"
+        SP1[Environment Variables<br/>Secure Config]
+        SP2[Error Boundaries<br/>Fault Tolerance]
+        SP3[Input Validation<br/>Data Integrity]
+        SP4[RLS Policies<br/>Access Control]
+        SP5[Connection Pooling<br/>Database Performance]
+        SP6[Bundle Optimization<br/>Vite Tree Shaking]
+    end
+    
+    subgraph "Development Workflow"
+        DW1[TypeScript<br/>Compile-time Checks]
+        DW2[Vite Dev Server<br/>Hot Reload]
+        DW3[Playwright<br/>E2E Testing]
+        DW4[Environment Management<br/>Dev/Prod Configs]
+        DW5[Build Pipeline<br/>Static Generation]
+    end
+    
+    %% Technology Connections
+    FS1 --> SM1
+    FS2 --> FS1
+    FS4 --> PWA2
+    
+    SM1 --> DF4
+    SM5 --> BE2
+    
+    OA2 --> OA4
+    OA1 --> PWA2
+    
+    BE1 --> BE4
+    BE2 --> BE1
+    
+    %% Data Flow Connections
+    DF1 -.->|User Events| SM1
+    DF7 -.->|CRUD Operations| OA2
+    DF8 -.->|Sync Strategy| OA4
+    
+    CJ1 -.->|Auth Flow| BE2
+    CJ3 -.->|Real-time Updates| PWA3
+    CJ7 -.->|Offline Mode| OA1
+    
+    %% Styling
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef state fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef dataflow fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef backend fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef offline fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef pwa fill:#e0f2f1,stroke:#00796b,stroke-width:2px
+    classDef journey fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    classDef security fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef dev fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    
+    class FS1,FS2,FS3,FS4,FS5 frontend
+    class SM1,SM2,SM3,SM4,SM5 state
+    class DF1,DF2,DF3,DF4,DF5,DF6,DF7,DF8,DF9,DF10,DF11 dataflow
+    class BE1,BE2,BE3,BE4,BE5 backend
+    class OA1,OA2,OA3,OA4,OA5 offline
+    class PWA1,PWA2,PWA3,PWA4,PWA5,PWA6 pwa
+    class CJ1,CJ2,CJ3,CJ4,CJ5,CJ6,CJ7,CJ8,CJ9,CJ10,CJ11 journey
+    class SP1,SP2,SP3,SP4,SP5,SP6 security
+    class DW1,DW2,DW3,DW4,DW5 dev

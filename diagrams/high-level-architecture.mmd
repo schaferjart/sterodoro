@@ -1,0 +1,117 @@
+graph TB
+    subgraph "Frontend Layer"
+        A[App.tsx<br/>Main App Component] --> B[SetupScreen]
+        A --> C[TimerScreen]
+        A --> D[TrackerScreen]
+        A --> E[NotePromptScreen]
+        A --> F[AuthForm]
+        
+        B --> BA[Activity Management]
+        B --> BB[Intake Tracking]
+        B --> BC[Reading Sessions]
+        B --> BD[Note Taking]
+        B --> BE[Log History]
+        
+        C --> CA[Timer Controls]
+        C --> CB[Progress Display]
+        C --> CC[Session Notes]
+        C --> CD[Background Tasks]
+        
+        D --> DA[Performance Metrics]
+        D --> DB[Activity Switching]
+        
+        E --> EA[Note Prompts]
+        E --> EB[Session Completion]
+        
+        F --> FA[Login/Signup]
+        F --> FB[Auth Status]
+    end
+    
+    subgraph "State Management"
+        SM1[React State<br/>App.tsx] --> SM2[Session Config]
+        SM1 --> SM3[Timer State]
+        SM1 --> SM4[User State]
+        SM1 --> SM5[Activities/Intakes]
+        SM1 --> SM6[Logs Data]
+        
+        SM7[Local Storage<br/>Browser] --> SM1
+        SM8[Supabase Auth<br/>Global State] --> SM1
+    end
+    
+    subgraph "API Layer"
+        API1[lib/database.ts] --> API2[CRUD Operations]
+        API3[lib/auth.ts] --> API4[Authentication]
+        API5[lib/sync-manager.ts] --> API6[Offline Sync]
+        API7[lib/offline-storage.ts] --> API8[Dexie/IndexedDB]
+    end
+    
+    subgraph "Backend Services"
+        SB1[Supabase Database] --> SB2[activity_objects]
+        SB1 --> SB3[session_logs]
+        SB1 --> SB4[intake_logs]
+        SB1 --> SB5[reading_logs]
+        SB1 --> SB6[note_logs]
+        SB1 --> SB7[intake_objects]
+        SB1 --> SB8[reading_objects]
+        
+        SB9[Supabase Auth] --> SB10[User Management]
+        SB9 --> SB11[Row Level Security]
+        
+        SB12[Supabase Realtime] --> SB13[Live Updates]
+    end
+    
+    subgraph "PWA Infrastructure"
+        PWA1[Service Worker<br/>sw.js] --> PWA2[Offline Caching]
+        PWA1 --> PWA3[Background Sync]
+        PWA1 --> PWA4[Push Notifications]
+        PWA1 --> PWA5[Timer Alerts]
+        
+        PWA6[Manifest] --> PWA7[App Installation]
+        PWA6 --> PWA8[Standalone Mode]
+        
+        PWA9[Vite PWA Plugin] --> PWA10[Build Integration]
+    end
+    
+    subgraph "Offline Storage"
+        OS1[Dexie Database] --> OS2[Activities]
+        OS1 --> OS3[Session Logs]
+        OS1 --> OS4[Sync Queue]
+        OS1 --> OS5[User Data]
+        
+        OS6[Browser Cache] --> OS7[Static Assets]
+        OS6 --> OS8[API Responses]
+    end
+    
+    %% Data Flow Connections
+    A -.->|State Updates| SM1
+    SM1 -.->|Props/Callbacks| B
+    SM1 -.->|Props/Callbacks| C
+    SM1 -.->|Props/Callbacks| D
+    SM1 -.->|Props/Callbacks| E
+    
+    API1 -.->|Database Queries| SB1
+    API3 -.->|Auth Requests| SB9
+    API5 -.->|Sync Operations| SB1
+    API7 -.->|Local Storage| OS1
+    
+    PWA1 -.->|Background Tasks| API5
+    PWA1 -.->|Cache Management| OS6
+    
+    A -.->|User Actions| API1
+    A -.->|Auth Events| API3
+    A -.->|Data Sync| API5
+    
+    %% Styling
+    classDef frontend fill:#e1f5fe
+    classDef state fill:#f3e5f5
+    classDef api fill:#e8f5e8
+    classDef backend fill:#fff3e0
+    classDef pwa fill:#fce4ec
+    classDef storage fill:#f1f8e9
+    
+    class A,B,C,D,E,F,BA,BB,BC,BD,BE,CA,CB,CC,CD,DA,DB,EA,EB,FA,FB frontend
+    class SM1,SM2,SM3,SM4,SM5,SM6,SM7,SM8 state
+    class API1,API2,API3,API4,API5,API6,API7,API8 api
+    class SB1,SB2,SB3,SB4,SB5,SB6,SB7,SB8,SB9,SB10,SB11,SB12,SB13 backend
+    class PWA1,PWA2,PWA3,PWA4,PWA5,PWA6,PWA7,PWA8,PWA9,PWA10 pwa
+    class OS1,OS2,OS3,OS4,OS5,OS6,OS7,OS8 storage

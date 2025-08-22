@@ -1,0 +1,151 @@
+graph TD
+    subgraph "Application Entry Point"
+        INDEX[index.tsx<br/>React Root]
+        INDEX --> APP[App.tsx<br/>Main Application Controller]
+    end
+    
+    subgraph "Core Application State"
+        APP --> AS1[view: View State]
+        APP --> AS2[config: SessionConfig]
+        APP --> AS3[timerState: TimerState]
+        APP --> AS4[user: User Session]
+        APP --> AS5[activities: ActivityObjects]
+        APP --> AS6[logs: AppLogs]
+        APP --> AS7[soundEnabled: boolean]
+    end
+    
+    subgraph "Screen Components"
+        APP -->|view SETUP| SETUP[SetupScreen.tsx]
+        APP -->|view TIMER| TIMER[TimerScreen.tsx]
+        APP -->|view TRACKER| TRACKER[TrackerScreen.tsx]
+        APP -->|view PROMPT_NOTE| NOTE[NotePromptScreen.tsx]
+        APP -->|no user| AUTH[AuthForm.tsx]
+        
+        SETUP --> SS1[Activity Management]
+        SETUP --> SS2[Timer Configuration]
+        SETUP --> SS3[Intake Logging]
+        SETUP --> SS4[Reading Sessions]
+        SETUP --> SS5[Note Taking]
+        SETUP --> SS6[History Display]
+        
+        TIMER --> TS1[Timer Display]
+        TIMER --> TS2[Session Controls]
+        TIMER --> TS3[Background Tasks]
+        TIMER --> TS4[Note Taking]
+        
+        TRACKER --> TRS1[Metric Sliders]
+        TRACKER --> TRS2[Activity Selection]
+        
+        NOTE --> NS1[Note Input]
+        NOTE --> NS2[Session Completion]
+    end
+    
+    subgraph "Authentication Flow"
+        AUTH --> AUTH1[Login Component]
+        AUTH --> AUTH2[Signup Component]
+        AUTH1 --> LIBAUTH[lib/auth.ts]
+        AUTH2 --> LIBAUTH
+        LIBAUTH --> SUPAAUTH[Supabase Auth]
+        SUPAAUTH -->|Auth State Change| APP
+    end
+    
+    subgraph "Data Management Layer"
+        APP --> DM1[lib/database.ts<br/>Supabase Operations]
+        APP --> DM2[lib/offline-storage.ts<br/>Local Database]
+        APP --> DM3[lib/sync-manager.ts<br/>Sync Coordination]
+        
+        DM1 --> DB1[getActivityObjects]
+        DM1 --> DB2[logSession]
+        DM1 --> DB3[createActivityObject]
+        DM1 --> DB4[getSessionLogs]
+        
+        DM2 --> OS1[Dexie Database]
+        OS1 --> OS2[activities table]
+        OS1 --> OS3[sessionLogs table]
+        OS1 --> OS4[syncOperations table]
+        
+        DM3 --> SM1[Background Sync]
+        DM3 --> SM2[Retry Queue]
+        DM3 --> SM3[Online Detection]
+    end
+    
+    subgraph "External Services"
+        DM1 --> SUPADB[(Supabase Database)]
+        SUPADB --> TABLE1[activity_objects]
+        SUPADB --> TABLE2[session_logs]
+        SUPADB --> TABLE3[intake_logs]
+        SUPADB --> TABLE4[reading_logs]
+        SUPADB --> TABLE5[note_logs]
+        SUPADB --> TABLE6[intake_objects]
+        SUPADB --> TABLE7[reading_objects]
+    end
+    
+    subgraph "PWA Features"
+        APP --> PWA1[Service Worker]
+        PWA1 --> PWA2[Timer Notifications]
+        PWA1 --> PWA3[Background Sync]
+        PWA1 --> PWA4[Offline Caching]
+        PWA1 --> PWA5[Push Notifications]
+        
+        PWA6[Manifest.json] --> PWA7[App Installation]
+        PWA8[Vite PWA Config] --> PWA9[Build Integration]
+    end
+    
+    subgraph "Utility Libraries"
+        APP --> UTIL1[lib/time-utils.ts]
+        APP --> UTIL2[lib/error-reporting.ts]
+        APP --> UTIL3[lib/env-validation.ts]
+        APP --> UTIL4[lib/push-notifications.ts]
+        
+        UTIL1 --> TIME1[getCurrentLocalTime]
+        UTIL1 --> TIME2[formatDateTime]
+        
+        UTIL4 --> PUSH1[Push Manager]
+        UTIL4 --> PUSH2[Notification API]
+    end
+    
+    subgraph "Component Ecosystem"
+        SETUP --> COMP1[components/Slider.tsx]
+        SETUP --> COMP2[components/Icons.tsx]
+        AUTH --> COMP3[components/auth/Login.tsx]
+        AUTH --> COMP4[components/auth/Signup.tsx]
+        APP --> COMP5[components/ErrorBoundary.tsx]
+        APP --> COMP6[components/GlobalStyles.tsx]
+    end
+    
+    %% Data Flow Arrows
+    SETUP -.->|onStartTimer| APP
+    SETUP -.->|onLogActivity| APP
+    SETUP -.->|onAddNewActivity| APP
+    
+    TIMER -.->|onTimerEnd| APP
+    TIMER -.->|onGoHome| APP
+    TIMER -.->|onAddNote| APP
+    
+    TRACKER -.->|onSave| APP
+    NOTE -.->|onSave| APP
+    
+    APP -.->|Database Operations| DM1
+    APP -.->|Local Storage| DM2
+    APP -.->|Sync Triggers| DM3
+    
+    %% Styling
+    classDef entry fill:#ffeb3b,stroke:#f57f17,stroke-width:3px
+    classDef state fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef screen fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef auth fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef data fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef pwa fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef util fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    classDef comp fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    
+    class INDEX,APP entry
+    class AS1,AS2,AS3,AS4,AS5,AS6,AS7 state
+    class SETUP,TIMER,TRACKER,NOTE,SS1,SS2,SS3,SS4,SS5,SS6,TS1,TS2,TS3,TS4,TRS1,TRS2,NS1,NS2 screen
+    class AUTH,AUTH1,AUTH2,LIBAUTH,SUPAAUTH auth
+    class DM1,DM2,DM3,DB1,DB2,DB3,DB4,OS1,OS2,OS3,OS4,SM1,SM2,SM3 data
+    class SUPADB,TABLE1,TABLE2,TABLE3,TABLE4,TABLE5,TABLE6,TABLE7 external
+    class PWA1,PWA2,PWA3,PWA4,PWA5,PWA6,PWA7,PWA8,PWA9 pwa
+    class UTIL1,UTIL2,UTIL3,UTIL4,TIME1,TIME2,PUSH1,PUSH2 util
+    class COMP1,COMP2,COMP3,COMP4,COMP5,COMP6 comp

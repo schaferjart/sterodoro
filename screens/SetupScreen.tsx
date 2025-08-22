@@ -528,7 +528,13 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   const [selectedTrackerId, setSelectedTrackerId] = useState<string | null>(null);
 
   const allTrackers = useMemo(() => [ ...TRACKERS, { id: 'note', name: 'Note', metrics: [] } ], []);
-  const filteredActivities = useMemo(() => selectedCategory ? activities.filter(a => a.category === selectedCategory) : [], [selectedCategory, activities]);
+  // For timer and record modes, show all activities. For creation, filter by selected category.
+  const filteredActivities = useMemo(() => {
+    if (mode === 'TIMER' || mode === 'RECORD') {
+      return activities; // Show all activities for timer and record modes
+    }
+    return selectedCategory ? activities.filter(a => a.category === selectedCategory) : [];
+  }, [selectedCategory, activities, mode]);
   const groupedActivities = useMemo(() => {
     return activities.reduce((acc, act) => {
         (acc[act.category] = acc[act.category] || []).push(act);
@@ -539,7 +545,10 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
   // formatDateForInput is now imported from time-utils
   
   const resetForms = useCallback(() => {
-    setSelectedCategory(null);
+    // Only reset category selection for modes that use it (when creating new activities)
+    if (mode !== 'TIMER' && mode !== 'RECORD') {
+      setSelectedCategory(null);
+    }
     setSelectedActivity(null);
     setSelectedReadingObject(null);
           setSessionDuration(1500); // 25 minutes in seconds
@@ -553,13 +562,19 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
     setTrackerMetrics(null);
     setSelectedTrackerId(null);
     setNoteRelatedActivityIds([]);
+    // Reset activity creation form
+    setIsAddingActivity(false);
+    setNewActivityName('');
+    setNewActivitySubActivity('');
+    setNewActivitySubSubActivity('');
+    setNewActivityInfo('');
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     setEndTime(formatDateForInput(now));
     setStartTime(formatDateForInput(oneHourAgo));
     setSelectedIntakeIds([]);
     setIntakeTime(formatDateForInput(new Date()));
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     resetForms();
@@ -1354,112 +1369,118 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ soundEnabled, onSoundEnabledC
             <>
               <div className="p-2 sm:p-3 space-y-2">
                 
-                <div className="grid grid-cols-3 gap-2">
-                      {Object.values(ActivityCategory).map(cat => ( 
+                {filteredActivities.length === 0 ? (
+                    <div className="text-center py-6">
+                        <p className="text-black mb-2">No activities yet</p>
                         <button 
-                          key={cat} 
-                          onClick={() => { setSelectedCategory(cat); setSelectedActivity(null); }} 
-                          className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(selectedCategory === cat)}`}
+                          onClick={() => { setSelectedCategory(ActivityCategory.Work); setIsAddingActivity(true); }}
+                          className={`p-2 sm:p-3 rounded-lg font-bold border btn-mobile ${getButtonStyle(false)}`}
                         >
-                          {cat}
+                          Create Your First Activity
                         </button>
-                      ))}
-                </div>
-              </div>
-              {selectedCategory && (
-                  <div className="p-2 sm:p-3 space-y-2">
-                      
-                      {filteredActivities.length === 0 ? (
-                          <div className="text-center py-6">
-                              <p className="text-black mb-2">No activities yet for {selectedCategory}</p>
-                                  <button 
-                                    onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)}
-                                    disabled={isAddingActivity && !newActivityName.trim()}
-                                    className={`p-2 sm:p-3 rounded-lg font-bold border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
-                                  >
-                                    {isAddingActivity ? 'Save Activity' : 'Create Your First Activity'}
-                              </button>
-                          </div>
-                      ) : (
-                          <div className="grid grid-cols-3 gap-2">
-                              {filteredActivities.map(act => (
-                                <div key={act.id} className="relative group">
-                                  <button 
-                                    onClick={() => setSelectedActivity(act)} 
-                                        className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedActivity?.id === act.id)}`}
-                                  >
-                                    {act.name}
-                                  </button>
-                                  {!deleteProtectionEnabled && (
-                                    <button 
-                                      onClick={() => {
-                                        if (confirm(`Delete "${act.name}"? This will permanently delete this activity and ALL session logs that used it.`)) {
-                                          onDeleteActivity(act.id);
-                                        }
-                                      }}
-                                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="Delete activity"
-                                    >
-                                      ×
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                                  <button 
-                                onClick={isAddingActivity ? handleSaveInlineActivity : () => setIsAddingActivity(true)} 
-                                disabled={isAddingActivity && !newActivityName.trim()}
-                                className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${isAddingActivity ? (!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected') : getButtonStyle(false)}`}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                        {filteredActivities.map(act => (
+                          <div key={act.id} className="relative group">
+                            <button 
+                              onClick={() => setSelectedActivity(act)} 
+                                  className={`w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center truncate border btn-mobile ${getButtonStyle(selectedActivity?.id === act.id)}`}
+                            >
+                              {act.name}
+                            </button>
+                            {!deleteProtectionEnabled && (
+                              <button 
+                                onClick={() => {
+                                  if (confirm(`Delete "${act.name}"? This will permanently delete this activity and ALL session logs that used it.`)) {
+                                    onDeleteActivity(act.id);
+                                  }
+                                }}
+                                className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Delete activity"
                               >
-                                {isAddingActivity ? 'Save' : 'Other...'}
+                                ×
                               </button>
-                                                    </div>
-                      )}
-                      {isAddingActivity && (
-                          <div className="grid grid-cols-3 gap-2 mt-3">
-                            {/* Name as editable div */}
-                            <div
-                              contentEditable
-                              suppressContentEditableWarning
-                              onFocus={e => { if (!newActivityName) e.currentTarget.textContent = ''; }}
-                              onBlur={e => setNewActivityName(e.currentTarget.textContent || '')}
-                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
-                            >
-                              {newActivityName || 'Name'}
-                            </div>
-                            {/* Sub Activity as editable div */}
-                            <div
-                              contentEditable
-                              suppressContentEditableWarning
-                              onFocus={e => { if (!newActivitySubActivity) e.currentTarget.textContent = ''; }}
-                              onBlur={e => setNewActivitySubActivity(e.currentTarget.textContent || '')}
-                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
-                            >
-                              {newActivitySubActivity || 'Sub Activity'}
-                            </div>
-                            {/* Sub Sub Activity as editable div */}
-                            <div
-                              contentEditable
-                              suppressContentEditableWarning
-                              onFocus={e => { if (!newActivitySubSubActivity) e.currentTarget.textContent = ''; }}
-                              onBlur={e => setNewActivitySubSubActivity(e.currentTarget.textContent || '')}
-                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
-                            >
-                              {newActivitySubSubActivity || 'Sub Sub Activity'}
-                            </div>
-                            {/* Info as editable div */}
-                            <div
-                              contentEditable
-                              suppressContentEditableWarning
-                              onFocus={e => { if (!newActivityInfo) e.currentTarget.textContent = ''; }}
-                              onBlur={e => setNewActivityInfo(e.currentTarget.textContent || '')}
-                              className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
-                            >
-                              {newActivityInfo || 'Info'}
-                            </div>
+                            )}
                           </div>
+                        ))}
+                        <button 
+                          onClick={() => { setSelectedCategory(ActivityCategory.Work); setIsAddingActivity(true); }} 
+                          className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(false)}`}
+                        >
+                          Other...
+                        </button>
+                    </div>
+                )}
+                {isAddingActivity && (
+                    <>
+                      {/* Category Selection for new activity */}
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        <div className="col-span-3 text-xs sm:text-sm text-theme-text opacity-70 mb-2">Select category for new activity:</div>
+                        {Object.values(ActivityCategory).map(cat => ( 
+                          <button 
+                            key={cat} 
+                            onClick={() => setSelectedCategory(cat)} 
+                            className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${getButtonStyle(selectedCategory === cat)}`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedCategory && (
+                        <div className="grid grid-cols-3 gap-2 mt-3">
+                          {/* Name as editable div */}
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            onFocus={e => { if (!newActivityName) e.currentTarget.textContent = ''; }}
+                            onBlur={e => setNewActivityName(e.currentTarget.textContent || '')}
+                            className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
+                          >
+                            {newActivityName || 'Name'}
+                          </div>
+                          {/* Sub Activity as editable div */}
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            onFocus={e => { if (!newActivitySubActivity) e.currentTarget.textContent = ''; }}
+                            onBlur={e => setNewActivitySubActivity(e.currentTarget.textContent || '')}
+                            className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
+                          >
+                            {newActivitySubActivity || 'Sub Activity'}
+                          </div>
+                          {/* Sub Sub Activity as editable div */}
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            onFocus={e => { if (!newActivitySubSubActivity) e.currentTarget.textContent = ''; }}
+                            onBlur={e => setNewActivitySubSubActivity(e.currentTarget.textContent || '')}
+                            className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
+                          >
+                            {newActivitySubSubActivity || 'Sub Sub Activity'}
+                          </div>
+                          {/* Info as editable div */}
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            onFocus={e => { if (!newActivityInfo) e.currentTarget.textContent = ''; }}
+                            onBlur={e => setNewActivityInfo(e.currentTarget.textContent || '')}
+                            className="w-full p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center truncate border btn-mobile btn-unselected"
+                          >
+                            {newActivityInfo || 'Info'}
+                          </div>
+                          <button 
+                            onClick={handleSaveInlineActivity} 
+                            disabled={!newActivityName.trim()}
+                            className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm transition-colors text-center border btn-mobile ${!newActivityName.trim() ? 'btn-unselected opacity-50 cursor-not-allowed' : 'btn-selected'}`}
+                          >
+                            Save Activity
+                          </button>
+                        </div>
                       )}
-                  </div>
-                  )}
+                    </>
+                )}
+              </div>
                 </>
               )}
               {selectedActivity && mode === 'TIMER' && (

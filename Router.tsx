@@ -47,13 +47,7 @@ const routes = [
   },
 ];
 
-// Add the dev-only component showcase route
-if (import.meta.env.DEV) {
-  routes.push({
-    path: '/dev/components',
-    element: <DevComponentShowcase />,
-  });
-}
+// The '/dev/components' route has been removed to avoid confusion during testing.
 
 const router = createBrowserRouter(routes);
 

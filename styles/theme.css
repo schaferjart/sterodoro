@@ -1,0 +1,47 @@
+/*
+ * =================================================================
+ * THEME DEFINITIONS
+ * =================================================================
+ * This file contains the CSS variables for different color themes.
+ * The default theme is 'light'. A theme can be applied by adding
+ * a `data-theme` attribute to a parent element, e.g., <body data-theme="dark">.
+ * =================================================================
+ */
+
+:root, [data-theme="light"] {
+  /* Core Palette */
+  --color-background: #ffffff;      /* White */
+  --color-surface: #F9FAFB;        /* Off-white for cards/containers */
+  --color-text-primary: #111827;    /* Near-black for primary text */
+  --color-text-secondary: #6B7280;  /* Grey for secondary text */
+  --color-text-tertiary: #9CA3AF;   /* Lighter grey for placeholders/disabled */
+  --color-border: #000000;          /* Black borders */
+
+  /* Interactive Elements */
+  --color-primary: #4F46E5;         /* Indigo for primary actions */
+  --color-primary-hover: #4338CA;   /* Darker Indigo for hover */
+  --color-selected: #E5E7EB;      /* User's specified grey for selection */
+
+  /* Feedback Colors */
+  --color-success: #10B981;         /* Green */
+  --color-error: #EF4444;           /* Red */
+}
+
+[data-theme="dark"] {
+  /* Core Palette */
+  --color-background: #111827;      /* Dark Grey/Navy */
+  --color-surface: #1F2937;        /* Slightly lighter grey for cards */
+  --color-text-primary: #F9FAFB;    /* Near-white for primary text */
+  --color-text-secondary: #9CA3AF;  /* Grey for secondary text */
+  --color-text-tertiary: #6B7280;   /* Darker grey for placeholders/disabled */
+  --color-border: #FFFFFF;          /* White borders */
+
+  /* Interactive Elements */
+  --color-primary: #6366F1;         /* Brighter Indigo for dark mode */
+  --color-primary-hover: #818CF8;   /* Even brighter Indigo for hover */
+  --color-selected: #374151;      /* User's specified darker grey for selection */
+
+  /* Feedback Colors */
+  --color-success: #34D399;         /* Lighter Green */
+  --color-error: #F87171;           /* Lighter Red */
+}

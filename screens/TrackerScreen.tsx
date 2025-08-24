@@ -1,12 +1,12 @@
-
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getCurrentTimestamp } from '../lib/time-utils';
 import { SessionConfig, PerformanceUpdate, ActivityObject, ActivityCategory } from '../types';
 import { TRACKERS } from '../constants';
+import { useSessionStore } from '../lib/stores/sessionStore';
+import { useDataStore } from '../lib/stores/dataStore';
 import Slider from '../components/Slider';
 import { ChevronDownIcon } from '../components/Icons';
-import UserID from '../components/UserID';
-
 
 const ChangeActivityModal: React.FC<{
     activities: ActivityObject[];
@@ -64,29 +64,24 @@ const ChangeActivityModal: React.FC<{
     );
 };
 
+const TrackerScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const { config, isFinalTracking, addPerformanceLog, resetSession, setConfig, setTimerState } = useSessionStore();
+  const { activities } = useDataStore();
 
-interface TrackerScreenProps {
-  config: SessionConfig;
-  onSave: (update: PerformanceUpdate, newActivity?: ActivityObject) => void;
-  activities: ActivityObject[];
-  isFinalTracking: boolean;
-  userEmail?: string;
-}
-
-const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activities, isFinalTracking, userEmail }) => {
   const trackerMetrics = useMemo(() => {
-    if (!config.trackerSettings.selectedTrackerId) return [];
+    if (!config?.trackerSettings.selectedTrackerId) return [];
     const tracker = TRACKERS.find(t => t.id === config.trackerSettings.selectedTrackerId);
     return tracker ? tracker.metrics : [];
-  }, [config.trackerSettings.selectedTrackerId]);
+  }, [config?.trackerSettings.selectedTrackerId]);
 
   const initialMetrics = useMemo(() => trackerMetrics.reduce((acc, name) => {
-    acc[name] = 5; // Default to 5 on a 0-10 scale
+    acc[name] = 5;
     return acc;
   }, {} as Record<string, number>), [trackerMetrics]);
   
   const [metrics, setMetrics] = useState<Record<string, number>>(initialMetrics);
-  const [nextActivity, setNextActivity] = useState<ActivityObject>(config.activity);
+  const [nextActivity, setNextActivity] = useState<ActivityObject | null>(config?.activity ?? null);
   const [isChangingActivity, setIsChangingActivity] = useState(false);
 
   const handleSliderChange = (name: string, value: number) => {
@@ -97,21 +92,40 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activitie
   };
 
   const handleSave = () => {
-    onSave({
+    addPerformanceLog({
       timestamp: getCurrentTimestamp(),
       metrics: metrics,
-    }, isFinalTracking ? undefined : nextActivity);
+    });
+
+    if (isFinalTracking) {
+        // Here you would typically save the entire session log
+        // For now, we just reset and go home
+        resetSession();
+        navigate('/');
+    } else {
+        if (nextActivity && config) {
+            setConfig({ ...config, activity: nextActivity });
+        }
+        setTimerState({
+            isBreak: true,
+            timeRemaining: config?.timerSettings.breakDuration ?? 300,
+            madeTime: 0,
+        });
+        navigate('/timer');
+    }
   };
+
+  if (!config || !nextActivity) {
+    return <div>Loading...</div>; // Or redirect
+  }
 
   return (
     <div className="flex flex-col h-full bg-black text-white animate-fade-in relative overflow-hidden safe-area-inset">
-      {/* Fixed Header */}
       <header className="text-center py-4 px-4 flex-shrink-0 bg-black">
         <h1 className="text-xl sm:text-2xl font-bold">Performance Tracker</h1>
         <p className="text-gray-400 text-sm sm:text-base">{isFinalTracking ? "How was the session?" : "How are you feeling?"}</p>
       </header>
       
-      {/* Next Activity Section - Fixed */}
       {!isFinalTracking && (
         <div className="text-center py-2 px-4 flex-shrink-0">
           <p className="text-sm text-gray-400 mb-1">Next up:</p>
@@ -122,7 +136,6 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activitie
         </div>
       )}
 
-      {/* Scrollable Content Area */}
       <main className="flex-1 overflow-y-auto px-4 py-4 space-y-4 sm:space-y-6 min-h-0">
         {Object.keys(metrics).map(metricName => (
           <div key={metricName} className="min-h-[70px] sm:min-h-[80px] flex flex-col justify-center">
@@ -141,11 +154,9 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ config, onSave, activitie
           </div>
         ))}
         
-        {/* Add some bottom padding to ensure content doesn't get cut off */}
         <div className="h-6 sm:h-4"></div>
       </main>
 
-      {/* Fixed Footer */}
       <footer className="p-2 sm:p-4 flex-shrink-0 border-t border-gray-800 bg-black shadow-lg">
         <button
           onClick={handleSave}

@@ -1,28 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { SessionConfig } from '../types';
+import { useNavigate } from 'react-router-dom';
 import { NoteIcon, TrackIcon, HomeIcon, ChevronLeftIcon } from '../components/Icons';
 import { pushNotificationManager } from '../lib/push-notifications';
-import UserID from '../components/UserID';
-
-interface TimerScreenProps {
-  config: SessionConfig;
-  timerState: {
-    isActive: boolean;
-    isBreak: boolean;
-    currentSession: number;
-    timeRemaining: number;
-    madeTime: number;
-  };
-  setTimerState: React.Dispatch<React.SetStateAction<any>>;
-  onBreakStart: () => void;
-  onSessionStart: () => void;
-  onTimerEnd: () => void;
-  onGoHome: () => void;
-  onAddNote: (note: string) => void;
-  notesCount: number;
-  soundEnabled: boolean;
-  userEmail?: string;
-}
+import { useAuthStore } from '../lib/stores/authStore';
+import { useSessionStore } from '../lib/stores/sessionStore';
 
 const formatTime = (seconds: number): string => {
   const m = Math.floor(seconds / 60);
@@ -30,10 +11,43 @@ const formatTime = (seconds: number): string => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
-const TimerScreen: React.FC<TimerScreenProps> = ({
-  config, timerState, setTimerState, onBreakStart, onSessionStart, onTimerEnd, onGoHome, onAddNote, notesCount, soundEnabled, userEmail
-}) => {
+const TimerScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const {
+    config,
+    timerState,
+    setTimerState,
+    addSessionNote,
+    notesCount,
+    resetSession,
+  } = useSessionStore((state) => ({
+    config: state.config,
+    timerState: state.timerState,
+    setTimerState: state.setTimerState,
+    addSessionNote: state.addSessionNote,
+    notesCount: state.sessionNotes.length,
+    resetSession: state.resetSession,
+  }));
+
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('productivity-timer-sound-enabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
   const { isBreak, currentSession, timeRemaining, madeTime } = timerState;
+
+  // Redirect if config is missing
+  useEffect(() => {
+    if (!config) {
+      navigate('/');
+    }
+  }, [config, navigate]);
+
+  if (!config) {
+    return null; // or a loading spinner
+  }
+
   const { sessionDuration, breakDuration, sessionCount } = config.timerSettings;
   const totalDuration = isBreak ? breakDuration : sessionDuration;
   
@@ -55,22 +69,34 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
     }
   }, [soundEnabled]);
 
-  // Handle page visibility changes
+  const onBreakStart = () => navigate('/tracker');
+  const onTimerEnd = () => navigate('/tracker');
+  const onSessionStart = () => {
+    setTimerState({
+        isBreak: false,
+        currentSession: timerState.currentSession + 1,
+        timeRemaining: config.timerSettings.sessionDuration,
+        madeTime: 0,
+      });
+  };
+  const onGoHome = () => {
+    resetSession();
+    navigate('/');
+  };
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       isPageVisibleRef.current = !document.hidden;
       
       if (timerState.isActive && !document.hidden) {
-        // App came back to foreground, recalculate timer
         const currentTime = Date.now();
         const elapsedSinceStart = Math.floor((currentTime - timerStartTimeRef.current) / 1000);
         const expectedRemaining = Math.max(0, totalDuration - elapsedSinceStart);
         
-        setTimerState((prev: any) => ({
-          ...prev,
+        setTimerState({
           timeRemaining: expectedRemaining,
           madeTime: Math.min(elapsedSinceStart, totalDuration)
-        }));
+        });
       }
     };
 
@@ -78,7 +104,6 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [timerState.isActive, totalDuration, setTimerState]);
 
-  // Reset timer start time when timer becomes inactive
   useEffect(() => {
     if (!timerState.isActive) {
       timerStartTimeRef.current = 0;
@@ -89,11 +114,9 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
   useEffect(() => {
     if (!timerState.isActive) return;
     
-    // Record start time when timer becomes active
     if (timerStartTimeRef.current === 0) {
       timerStartTimeRef.current = Date.now();
       
-      // Schedule remote push notification for timer end
       const endTime = new Date(Date.now() + (timeRemaining * 1000));
       pushNotificationManager.scheduleTimerNotification({
         isBreak: isBreak,
@@ -117,18 +140,9 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
       const elapsedSeconds = Math.floor((currentTime - lastUpdateTime) / 1000);
       
       if (elapsedSeconds >= 1) {
-        setTimerState((prev: any) => {
-          if (prev.timeRemaining > 0) {
-            const newTimeRemaining = Math.max(0, prev.timeRemaining - elapsedSeconds);
-            const newMadeTime = prev.madeTime + elapsedSeconds;
-            
-            return { 
-              ...prev, 
-              timeRemaining: newTimeRemaining, 
-              madeTime: newMadeTime 
-            };
-          }
-          return prev;
+        setTimerState({
+            timeRemaining: Math.max(0, timerState.timeRemaining - elapsedSeconds),
+            madeTime: timerState.madeTime + elapsedSeconds,
         });
         
         lastUpdateTime = currentTime;
@@ -144,11 +158,10 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [timerState.isActive, setTimerState]);
+  }, [timerState.isActive, timerState.timeRemaining, timerState.madeTime, setTimerState, isBreak, currentSession, sessionCount, timeRemaining]);
 
   useEffect(() => {
     if (timeRemaining <= 0 && timerState.isActive) {
-      // Send message to service worker for background notification
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
           type: 'TIMER_END',
@@ -158,7 +171,6 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         });
       }
       
-      // Show notification if app is in background
       if (document.hidden) {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Sterodoro', {
@@ -170,17 +182,14 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         }
       }
       
-      // Add vibration for iOS (works even in background)
       if ('vibrate' in navigator) {
         try {
-          // Vibrate pattern: 3 short vibrations
           navigator.vibrate([200, 100, 200, 100, 200]);
         } catch (error) {
           console.log('Vibration not supported or failed:', error);
         }
       }
 
-      // If user is writing a note, handle it gracefully
       if (isNoteTaking && noteText.trim()) {
         setShowTimerEndDialog(true);
         if (isBreak) {
@@ -205,22 +214,18 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
         return;
       }
 
-      // Normal flow when not writing a note
       if (isBreak) {
-        // Break ended
         if (currentSession < sessionCount) {
           onSessionStart();
         } else {
           onTimerEnd();
         }
       } else {
-        // Session ended
-        // Don't go to break if it's the last session
         if (currentSession < sessionCount && breakDuration > 0) {
            onBreakStart();
         } else if (currentSession >= sessionCount) {
             onTimerEnd();
-        } else { // Handle case with no breaks
+        } else {
             onSessionStart();
         }
       }
@@ -234,7 +239,10 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
 
   const handleSaveNote = () => {
     if (noteText.trim()) {
-      onAddNote(noteText.trim());
+      addSessionNote({
+        timestamp: new Date().toISOString(),
+        note: noteText.trim(),
+      });
       setNoteText('');
     }
     setIsNoteTaking(false);
@@ -242,7 +250,10 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
 
   const handleSaveAndContinue = () => {
     if (noteText.trim()) {
-      onAddNote(noteText.trim());
+        addSessionNote({
+            timestamp: new Date().toISOString(),
+            note: noteText.trim(),
+          });
       setNoteText('');
     }
     setIsNoteTaking(false);
@@ -299,7 +310,6 @@ const TimerScreen: React.FC<TimerScreenProps> = ({
           </button>
         </footer>
 
-        {/* Timer End Dialog */}
         {showTimerEndDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full">

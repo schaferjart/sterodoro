@@ -1,62 +1,66 @@
-// Flexible database types for user-defined objects and metrics
+// Type definitions for the flexible, user-defined database schema (Version 2)
 
-export interface UserObjectType {
-  id: string;
-  userId: string;
-  name: string; // "BJJ", "Museum Visit", "Coffee"
-  category: string; // "Sports", "Leisure", "Health"
-  description?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+import { PostgrestError } from "@supabase/supabase-js";
+
+// From system_functions table
+export interface SystemFunction {
+    id: string; // UUID
+    name: string;
+    description?: string;
+    data_type: 'TEXT' | 'NUMERIC' | 'BOOLEAN' | 'TIMESTAMPTZ' | 'ARRAY';
+    component_key: string;
 }
 
-export interface UserMetric {
-  id: string;
-  userId: string;
-  objectTypeId: string;
-  name: string; // "Technique Quality", "Energy Level"
-  minValue: number;
-  maxValue: number;
-  unit?: string; // "stars", "mg", "level"
-  displayOrder: number;
-  isActive: boolean;
-  createdAt: string;
+// Represents a single field within an object or log definition's structure
+export interface FieldDefinition {
+    fieldName: string;
+    systemFunctionId: string; // UUID linking to system_functions
+    isMandatory: boolean;
+    options?: string[]; // For 'Select' or 'MultiSelect' types
 }
 
-export interface UserObjectLog {
-  id: string;
-  userId: string;
-  objectTypeId: string;
-  timeStart?: string;
-  timeEnd?: string;
-  metrics?: Record<string, number>; // {"technique_quality": 8, "energy_level": 7}
-  notes?: Array<{timestamp: string; note: string}>;
-  customFields?: Record<string, any>; // {"gym": "BJJ Academy", "partner": "John"}
-  createdAt: string;
+// From object_definitions table
+export interface ObjectDefinition {
+    id: string; // UUID
+    user_id: string; // UUID
+    name: string;
+    description?: string;
+    created_at: string; // TIMESTAMPTZ
+    structure: FieldDefinition[];
 }
 
-// Helper types for creating objects
-export interface CreateUserObjectTypeRequest {
-  name: string;
-  category: string;
-  description?: string;
+// From objects table
+export interface ObjectInstance {
+    id: string; // UUID
+    user_id: string; // UUID
+    definition_id: string; // UUID linking to object_definitions
+    created_at: string; // TIMESTAMPTZ
+    data: Record<string, any>; // JSONB object with fields matching the definition's structure
 }
 
-export interface CreateUserMetricRequest {
-  objectTypeId: string;
-  name: string;
-  minValue: number;
-  maxValue: number;
-  unit?: string;
-  displayOrder?: number;
+// From log_definitions table
+export interface LogDefinition {
+    id: string; // UUID
+    user_id: string; // UUID
+    name: string;
+    description?: string;
+    object_definition_id: string; // UUID linking to object_definitions
+    created_at: string; // TIMESTAMPTZ
+    structure?: FieldDefinition[]; // Optional structure for complex trackers
 }
 
-export interface CreateUserObjectLogRequest {
-  objectTypeId: string;
-  timeStart?: string;
-  timeEnd?: string;
-  metrics?: Record<string, number>;
-  notes?: Array<{timestamp: string; note: string}>;
-  customFields?: Record<string, any>;
-} 
+// From logs table
+export interface LogInstance {
+    id: string; // UUID
+    user_id: string; // UUID
+    log_definition_id: string; // UUID linking to log_definitions
+    object_id: string; // UUID linking to objects
+    timestamp_start: string; // TIMESTAMPTZ
+    timestamp_end?: string; // TIMESTAMPTZ
+    log_data?: Record<string, any>; // Optional JSONB for extra log-specific data
+}
+
+// Generic type for Supabase queries
+export type DbResult<T> = T extends PromiseLike<infer U> ? U : never
+export type DbResultOk<T> = T extends PromiseLike<{ data: infer U }> ? Exclude<U, null> : never
+export type DbResultErr = PostgrestError

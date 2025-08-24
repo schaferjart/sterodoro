@@ -1,7 +1,7 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import AppRouter from './Router';
+import './styles/theme.css'; // Import the new theme file
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,6 +11,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <AppRouter />
   </React.StrictMode>
 );

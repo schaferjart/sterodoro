@@ -49,7 +49,7 @@ git push -u origin main
 ### **2. Configure Environment Variables**
 In Vercel dashboard → Settings → Environment Variables:
 ```
-VITE_SUPABASE_URL=https://gpkxqsqqiemkvhcykcxw.supabase.co
+VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
 ```
 

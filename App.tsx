@@ -1,3 +1,5 @@
+// Forcing a change to create a new commit
+// This comment is added to ensure a new commit is created for the fix.
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -17,9 +19,6 @@ import IOSNotificationHelper from './components/IOSNotificationHelper';
 import PushNotificationDebug from './components/PushNotificationDebug';
 
 const App: React.FC = () => {
-  const { user } = useAuthStore();
-  const fetchData = useDataStore((state) => state.fetchData);
-
   // Initialize app-level services
   useEffect(() => {
     try {
@@ -35,12 +34,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Fetch data when user logs in
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user, fetchData]);
 
   return (
     <ErrorBoundary>

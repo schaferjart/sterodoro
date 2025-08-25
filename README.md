@@ -1,35 +1,35 @@
 # Sterodoro
 
-A modern, offline-first Progressive Web App (PWA) for productivity tracking and time management. Built with React 19, TypeScript, and Supabase.
+An offline-first Progressive Web App (PWA) for writing and understanding. Built with React 19, TypeScript, and Supabase.
 
-## 🌟 Features
+## Features
 
-- **⏱️ Pomodoro Timer** - Customizable work/break cycles with session tracking
-- **📊 Performance Tracking** - Metrics collection during breaks with customizable trackers
-- **📝 Note Taking** - Session-specific note capture and organization
-- **📚 Reading Sessions** - Track reading progress and comprehension
-- **💊 Intake Tracking** - Monitor supplements, medications, and habits
-- **📱 Offline-First** - Full functionality without internet connection
-- **☁️ Multi-Device Sync** - Automatic data synchronization across devices
-- **🔄 Background Sync** - Seamless sync with progress tracking and retry mechanisms
-- **📱 PWA** - Installable app with service worker for offline functionality
+- **Pomodoro Timer** - Customizable work/break cycles with session tracking
+- **Performance Tracking** - Metrics collection during breaks with customizable trackers
+- **Note Taking** - Session-specific note capture and organization
+- **Reading Sessions** - Track reading progress and comprehension
+- **Intake Tracking** - Monitor supplements, medications, and habits
+- **Offline-First** - Full functionality without internet connection
+- **Multi-Device Sync** - Automatic data synchronization across devices
+- **Background Sync** - Seamless sync with progress tracking and retry mechanisms
+- **Progressive Web App** - Installable app with service worker for offline functionality
 
-## 🏗️ Architecture
+## Architecture
 
-### **Offline-First Design**
+### Offline-First Design
 - **Local Storage**: IndexedDB (Dexie.js) for instant offline access
 - **Cloud Storage**: Supabase PostgreSQL for multi-device sync
 - **Sync Strategy**: Optimistic UI updates with background synchronization
 - **Error Handling**: Comprehensive error reporting and recovery
 
-### **Technology Stack**
+### Technology Stack
 - **Frontend**: React 19 + TypeScript + Tailwind CSS
 - **Build Tool**: Vite with PWA plugin
 - **Local Storage**: Dexie.js (IndexedDB wrapper)
 - **Backend**: Supabase (PostgreSQL + Auth + Real-time)
 - **Deployment**: Static hosting (Vercel, Netlify, etc.)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ 
@@ -187,9 +187,9 @@ npm run dev
 
 The app will be available at `http://localhost:5173` (or the next available port).
 
-## 📱 Usage
+## Usage
 
-### **Getting Started**
+### Getting Started
 1. **Sign Up/Login** - Create an account or sign in with email/password
 2. **Create Activities** - Add your work activities, hobbies, or tasks
 3. **Configure Timer** - Set session duration, break length, and session count
@@ -198,17 +198,17 @@ The app will be available at `http://localhost:5173` (or the next available port
 6. **Take Notes** - Capture insights and observations
 7. **Review History** - Analyze your productivity patterns
 
-### **Offline Usage**
+### Offline Usage
 - **Works offline** - All features available without internet
 - **Automatic sync** - Data syncs when you're back online
 - **No data loss** - All data stored locally and backed up to cloud
 
-### **Multi-Device**
+### Multi-Device
 - **Sign in** on any device with the same account
 - **Data syncs** automatically across all devices
 - **Seamless experience** - Pick up where you left off
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 sterodoro-7/
@@ -236,32 +236,32 @@ sterodoro-7/
     └── sw.js            # Service worker
 ```
 
-## 🚀 Deployment
+## Deployment
 
-### **Build for Production**
+### Build for Production
 ```bash
 npm run build
 ```
 
-### **Deploy to Vercel**
+### Deploy to Vercel
 1. Install Vercel CLI: `npm i -g vercel`
 2. Deploy: `vercel --prod`
 
-### **Deploy to Netlify**
+### Deploy to Netlify
 1. Connect your GitHub repository
 2. Set build command: `npm run build`
 3. Set publish directory: `dist`
 
-### **Environment Variables for Production**
+### Environment Variables for Production
 Set these in your hosting platform:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_APP_VERSION`
 - `VITE_APP_NAME`
 
-## 🔧 Development
+## Development
 
-### **Available Scripts**
+### Available Scripts
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -269,48 +269,48 @@ npm run preview      # Preview production build
 npm run lint         # Run ESLint
 ```
 
-### **Testing**
+### Testing
 ```bash
 # Manual testing components available in development
 # Navigate to BackgroundSyncTest and OfflineStorageTest components
 ```
 
-### **Code Quality**
+### Code Quality
 - **TypeScript** - Strict type checking enabled
 - **ESLint** - Code linting and formatting
 - **Error Boundaries** - Graceful error handling
 - **Error Reporting** - Structured error logging
 
-## 📊 Data Flow
+## Data Flow
 
-### **Offline-First Architecture**
+### Offline-First Architecture
 ```
 User Action → Local State → IndexedDB → Cloud Sync → Supabase
      ↓              ↓              ↓              ↓           ↓
   Create Log → Update UI → Save Locally → Sync to Cloud → PostgreSQL
 ```
 
-### **Sync Strategy**
+### Sync Strategy
 - **Optimistic Updates** - UI updates immediately
 - **Background Sync** - Data syncs in background
 - **Retry Queue** - Failed operations retry automatically
 - **Progress Tracking** - Real-time sync progress
 
-## 🔒 Security
+## Security
 
 - **Authentication** - Supabase Auth with email/password
 - **Row-Level Security** - Users can only access their own data
 - **HTTPS Required** - Full PWA features require HTTPS
 - **No Sensitive Data** - All sensitive data handled by Supabase
 
-## 📈 Performance
+## Performance
 
 - **Offline-First** - Instant response, no network latency
 - **Progressive Loading** - App loads progressively
 - **Service Worker** - Caching for offline functionality
 - **Optimized Build** - Tree shaking and code splitting
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -318,25 +318,25 @@ User Action → Local State → IndexedDB → Cloud Sync → Supabase
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🆘 Support
+## Support
 
 - **Issues** - Report bugs on GitHub
 - **Documentation** - Check this README and code comments
 - **Community** - Join discussions in GitHub issues
 
-## 🎯 Roadmap
+## Roadmap
 
-- [ ] Automated test coverage
-- [ ] Push notifications
-- [ ] Data export/import
-- [ ] Advanced analytics
-- [ ] Team collaboration features
-- [ ] Mobile app versions
+- Automated test coverage
+- Push notifications
+- Data export/import
+- Advanced analytics
+- Team collaboration features
+- Mobile app versions
 
 ---
 
-**Built with ❤️ using React, TypeScript, and Supabase**
+**Built with React, TypeScript, and Supabase**
